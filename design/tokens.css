@@ -1,76 +1,115 @@
-/* SEPi brand tokens — Brand Guide v1.0
- * Drop into app/globals.css above the Tailwind layers.
- * Light theme only. This is an internal tool used in one room on one night;
- * a dark mode is not in scope for v1.
+/* SEPi brand tokens — Brand Guide v2.0, dark surface treatment.
+ *
+ * The guide specifies a light system: Cloud White carries the background,
+ * Executive Navy is the workhorse, accents stay at 5–10%. This app inverts the
+ * ground and keeps everything else. Midnight (#101828) — the guide's own
+ * "dark backgrounds" color — becomes the page instead of the ink, and the
+ * guide's white-mark-on-dark rule now applies everywhere.
+ *
+ * Four brand colors are unusable as-is on a near-black ground: Executive Navy,
+ * Oxford Blue, Cobalt, and the three status colors all fall under 3:1 against
+ * the page. Each gets a documented dark-surface tint below — same hue, lifted
+ * lightness. The original hexes are kept as --*-print for anything that leaves
+ * the screen (email, decks, merch), where the light system still governs.
  */
 
 :root {
-  /* Primary palette — ~80% of the interface */
+  /* ---------------------------------------------------- brand, as published */
   --midnight: #101828;
   --executive-navy: #1f3a5f;
   --slate-blue: #516b84;
   --cloud-white: #f8fafc;
   --pure-white: #ffffff;
 
-  /* Secondary palette */
   --steel-gray: #6b7280;
   --cool-gray: #d1d5db;
   --stone: #e5e7eb;
   --mist-blue: #a7b6c5;
   --charcoal: #374151;
 
-  /* Accent palette — 5–10% of any screen, no more */
   --oxford-blue: #2c4a73;
   --powder-blue: #bfcfdd;
   --graphite: #4b5563;
   --cobalt: #1b2a8c;
 
-  /* Semantic roles — these are what components should reference */
-  --color-primary: var(--executive-navy);
-  --color-primary-hover: var(--oxford-blue);
+  /* Print / email values. Do not use these on screen. */
+  --navy-print: var(--executive-navy);
+  --cobalt-print: var(--cobalt);
+
+  /* ------------------------------------------- dark-surface tints (derived) */
+  /* Same hue as the published color, lifted to clear 4.5:1 on --color-bg. */
+  --navy-lift: #3f6ea8;   /* Executive Navy on dark  */
+  --oxford-lift: #567fb4; /* Oxford Blue on dark     */
+  --cobalt-lift: #6076f5; /* Cobalt on dark          */
+
+  /* ------------------------------------------------------------ the ground */
+  /* Midnight, pushed two steps darker so Midnight itself can be a surface. */
+  --ink: #070b14;
+  --ink-raised: #0d1524;
+  --ink-sunken: #04070d;
+
+  /* --------------------------------------------------------- semantic roles */
+  --color-bg: var(--ink);
+  --color-surface: var(--ink-raised);
+  --color-surface-alt: var(--midnight);
+  --color-surface-sunken: var(--ink-sunken);
+
+  --color-text: var(--cloud-white);
+  --color-text-muted: #93a3b8;
+  --color-text-dim: #64748b;
+  --color-text-inverse: var(--midnight);
+
+  --color-border: #1c2740;
+  --color-border-strong: #2b3b5c;
+
+  --color-primary: var(--navy-lift);
+  --color-primary-hover: var(--oxford-lift);
   --color-secondary: var(--slate-blue);
-  --color-accent: var(--cobalt);
+  --color-accent: var(--cobalt-lift);
 
-  --color-bg: var(--cloud-white);
-  --color-surface: var(--pure-white);
-  --color-surface-alt: var(--stone);
+  /* On a dark ground the highest-impact fill is the lightest one. Cloud White
+     on Midnight is the primary button; Cobalt-lift is the pop accent. */
+  --color-cta-bg: var(--cloud-white);
+  --color-cta-text: var(--midnight);
 
-  --color-text: var(--midnight);
-  --color-text-muted: var(--steel-gray);
-  --color-text-inverse: var(--pure-white);
+  /* Status — additions, see docs/BRAND.md, lifted for dark. */
+  --color-success: #3fbf6b;
+  --color-warning: #e0a143;
+  --color-danger: #f0656a;
 
-  --color-border: var(--cool-gray);
-  --color-border-strong: var(--mist-blue);
-
-  /* Status — not in the brand guide, see docs/BRAND.md */
-  --color-success: #15803d;
-  --color-warning: #b45309;
-  --color-danger: #b91c1c;
-
-  /* Type */
+  /* ----------------------------------------------------------------- type */
   --font-display: "Fraunces", ui-serif, Georgia, serif;
   --font-body: "Karla", ui-sans-serif, system-ui, sans-serif;
 
-  /* Touch target floor — every interactive element */
-  --tap-min: 44px;
+  /* ---------------------------------------------------------------- metrics */
+  --tap-min: 44px;   /* touch target floor, every interactive element */
+  --radius: 3px;     /* dense tool, not a consumer app */
+  --radius-lg: 6px;
+  --shell-max: 1100px;
 }
 
 html {
   font-family: var(--font-body);
   background: var(--color-bg);
   color: var(--color-text);
+  color-scheme: dark;
+  -webkit-text-size-adjust: 100%;
 }
 
-/* Fraunces is display-only. Headlines and logo lockups, never paragraphs. */
+/* Fraunces is display-only. Headlines, numbers, and logo lockups —
+   never paragraphs. Its optical sizing is built for large display use. */
 h1, h2, h3 {
   font-family: var(--font-display);
   font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
-/* Eyebrow / label treatment from the guide */
+/* Eyebrow / label treatment from the guide. */
 .eyebrow {
   font-family: var(--font-body);
   font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
+  font-size: 0.6875rem;
+  color: var(--color-text-dim);
 }

@@ -1,4 +1,4 @@
-# SEPi Brand — extracted from Brand Guide v1.0
+# SEPi Brand — extracted from Brand Guide v2.0
 
 Source: `SEPiBrandGuide.pdf` (Sigma Eta Pi, Miami University Chapter).
 
@@ -53,16 +53,44 @@ Both fonts are free on Google Fonts.
 - Logo: navy mark on light backgrounds, white mark on dark or photo backgrounds. Maintain clear
   space equal to the wingspan height on all sides.
 
+## The dark treatment
+
+The app runs on a near-black ground. This is a deliberate departure from the guide's light
+system, and it keeps every other rule intact.
+
+**What carries over unchanged.** The palette, the type pairing, the 5–10% accent budget, the
+eyebrow treatment, and the logo rule — the guide already says to use the white mark on dark
+backgrounds, which is now every surface in the app.
+
+**What changes.** Midnight (`#101828`) is the guide's own "dark backgrounds" color, so it becomes
+the page rather than the ink. Two steps darker than Midnight gives `--ink` (`#070B14`), which lets
+Midnight itself serve as a raised surface. Cloud White becomes the text and the primary button
+fill: on a dark ground the lightest fill is the loudest, so a figure in Cloud White Fraunces is
+the strongest element on a screen with no decoration at all.
+
+**Derived tints.** Four brand colors fall under 3:1 against the page and cannot be used as
+published. Each gets a same-hue, lifted-lightness tint, defined in `design/tokens.css`:
+
+| Published | On dark | Used for |
+|---|---|---|
+| Executive Navy `#1F3A5F` | `--navy-lift` `#3F6EA8` | primary semantic role |
+| Oxford Blue `#2C4A73` | `--oxford-lift` `#567FB4` | hover states |
+| Cobalt `#1B2A8C` | `--cobalt-lift` `#6076F5` | the one pop — links, the Invest button, focus rings |
+
+**The originals still govern print and email.** Email templates in `lib/email.ts` use the light
+system on purpose — inboxes are white, and the guide's rules apply there untouched.
+
 ## Semantic mapping used by this app
 
 The guide has no status colors. These three are **additions**, chosen to sit quietly next to the
-navy palette rather than shout. Change them if the chapter picks its own.
+navy palette rather than shout. Change them if the chapter picks its own. Each has a lifted
+variant for the dark ground; the published values below are the print/email ones.
 
-| Token | Hex |
-|---|---|
-| Success | `#15803D` |
-| Warning | `#B45309` |
-| Danger | `#B91C1C` |
+| Token | Print hex | On dark |
+|---|---|---|
+| Success | `#15803D` | `#3FBF6B` |
+| Warning | `#B45309` | `#E0A143` |
+| Danger | `#B91C1C` | `#F0656A` |
 
 ## Logo
 

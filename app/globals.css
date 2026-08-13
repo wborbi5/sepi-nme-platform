@@ -1,0 +1,183 @@
+@import "tailwindcss";
+@import "../design/tokens.css";
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-ink-raised: var(--ink-raised);
+  --color-ink-sunken: var(--ink-sunken);
+  --color-midnight: var(--midnight);
+
+  --color-navy: var(--navy-lift);
+  --color-oxford: var(--oxford-lift);
+  --color-cobalt: var(--cobalt-lift);
+  --color-slate-blue: var(--slate-blue);
+  --color-mist: var(--mist-blue);
+  --color-powder: var(--powder-blue);
+  --color-cloud: var(--cloud-white);
+  --color-steel: var(--steel-gray);
+  --color-graphite: var(--graphite);
+
+  --color-bg: var(--color-bg);
+  --color-surface: var(--color-surface);
+  --color-surface-alt: var(--color-surface-alt);
+  --color-line: var(--color-border);
+  --color-line-strong: var(--color-border-strong);
+
+  --color-fg: var(--color-text);
+  --color-muted: var(--color-text-muted);
+  --color-dim: var(--color-text-dim);
+
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+  --color-danger: var(--color-danger);
+
+  --font-display: var(--font-display);
+  --font-sans: var(--font-body);
+
+  --radius-brand: var(--radius);
+  --radius-brand-lg: var(--radius-lg);
+}
+
+/* --------------------------------------------------------------- base */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Every interactive element clears the touch floor. Zero hover-dependent
+   interactions — hover is decoration, never the only affordance. */
+button,
+[role="button"],
+a.tap,
+input,
+select,
+textarea {
+  min-height: var(--tap-min);
+  font-family: inherit;
+}
+
+button {
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: inherit;
+  padding: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--cobalt-lift);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+::selection {
+  background: var(--cobalt-lift);
+  color: var(--cloud-white);
+}
+
+/* ------------------------------------------------------------ utilities */
+
+/* Big concrete numbers. The point of a dark ground is that a figure in
+   Cloud White Fraunces is the loudest thing on the screen without a single
+   decorative pixel. */
+.figure {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.hairline {
+  border-color: var(--color-border);
+}
+
+/* Scrollbars, dark. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 6px;
+  border: 3px solid var(--color-bg);
+}
+
+/* Markdown bodies inside posts and profiles. */
+.prose-sepi {
+  color: var(--color-text-muted);
+}
+.prose-sepi > * + * {
+  margin-top: 0.75rem;
+}
+.prose-sepi strong {
+  color: var(--color-text);
+  font-weight: 700;
+}
+.prose-sepi a {
+  color: var(--cobalt-lift);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.prose-sepi ul,
+.prose-sepi ol {
+  padding-left: 1.15rem;
+}
+.prose-sepi li + li {
+  margin-top: 0.25rem;
+}
+.prose-sepi ul {
+  list-style: disc;
+}
+.prose-sepi ol {
+  list-style: decimal;
+}
+.prose-sepi h1,
+.prose-sepi h2,
+.prose-sepi h3 {
+  color: var(--color-text);
+  font-size: 1rem;
+}
+.prose-sepi code {
+  font-size: 0.85em;
+  background: var(--color-surface-alt);
+  padding: 0.1em 0.35em;
+  border-radius: 2px;
+}
+.prose-sepi blockquote {
+  border-left: 2px solid var(--color-border-strong);
+  padding-left: 0.75rem;
+  color: var(--color-text-dim);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
