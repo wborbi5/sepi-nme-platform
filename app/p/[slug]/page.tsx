@@ -7,6 +7,8 @@ import {
   publicStorageUrl,
 } from "@/lib/data";
 import { createClient, supabaseConfigured } from "@/lib/supabase/server";
+import { createServiceClient, serviceRoleConfigured } from "@/lib/supabase/admin";
+import { signOut } from "@/app/auth/actions";
 
 /*
  * Member profile in the Garry Tan page layout: breadcrumb, huge italic
@@ -54,6 +56,19 @@ export default async function ProfilePage({
   }
 
   const avatar = publicStorageUrl("avatars", profile.avatar_path);
+
+  // Raw PDF: private bucket, so the server mints a short-lived signed
+  // URL while rendering (spec: members reach resumes this way; the page
+  // itself is already behind the auth wall).
+  const parsed = profile.resume_parsed;
+  let resumeUrl: string | null = null;
+  if (profile.resume_path && serviceRoleConfigured()) {
+    const service = createServiceClient();
+    const { data: signed } = await service.storage
+      .from("resumes")
+      .createSignedUrl(profile.resume_path, 3600);
+    resumeUrl = signed?.signedUrl ?? null;
+  }
   const roleLabel =
     profile.role === "admin"
       ? "Executive Board"
@@ -164,14 +179,22 @@ export default async function ProfilePage({
         </h1>
 
         {isOwnProfile && (
-          <p className="mb-6 text-center">
+          <div className="mb-6 flex items-center justify-center gap-3">
             <Link
               href="/settings/profile"
               className="btn inline-flex items-center rounded-full border border-coolgray bg-paper px-6 py-2.5 text-sm font-bold text-midnight hover:bg-cream"
             >
               Edit profile
             </Link>
-          </p>
+            <form action={signOut}>
+              <button
+                type="submit"
+                className="btn cursor-pointer rounded-full border border-coolgray bg-paper px-6 py-2.5 text-sm font-bold text-steel hover:bg-cream hover:text-midnight"
+              >
+                Sign out
+              </button>
+            </form>
+          </div>
         )}
 
         <div className="mt-6 grid grid-cols-1 gap-10 sm:grid-cols-[220px_1fr]">
@@ -186,8 +209,8 @@ export default async function ProfilePage({
                 </span>
               )}
             </span>
-            <div className="mt-3 flex items-center gap-2">
-              {profile.linkedin_url && (
+            {profile.linkedin_url && (
+              <div className="mt-3 flex items-center gap-2">
                 <a
                   href={profile.linkedin_url}
                   target="_blank"
@@ -197,11 +220,8 @@ export default async function ProfilePage({
                 >
                   in
                 </a>
-              )}
-              <span className="flex h-8 w-8 items-center justify-center bg-navy text-[10px] font-bold text-white">
-                ΣΗΠ
-              </span>
-            </div>
+              </div>
+            )}
           </div>
 
           <div className="text-[17px] leading-8 text-midnight">
@@ -227,6 +247,102 @@ export default async function ProfilePage({
             ))}
           </dl>
         </section>
+
+        {/* --------------------------------------------- parsed resume */}
+        {(parsed?.status === "done" || resumeUrl) && (
+          <section className="mt-16">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-2xl font-semibold text-midnight">Resume</h2>
+              {resumeUrl && (
+                <a
+                  href={resumeUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn inline-flex items-center rounded-full border border-coolgray bg-paper px-5 py-2.5 text-sm font-bold text-midnight hover:bg-cream"
+                >
+                  View full resume (PDF)
+                </a>
+              )}
+            </div>
+
+            {parsed?.status === "done" && (
+              <>
+                {parsed.summary && (
+                  <p className="mt-5 border-l-2 border-navy pl-4 text-[17px] leading-8 text-midnight">
+                    {parsed.summary}
+                  </p>
+                )}
+
+                {(parsed.experience?.length ?? 0) > 0 && (
+                  <div className="mt-8">
+                    <h3 className="text-sm font-bold uppercase tracking-wide text-steel">
+                      Experience
+                    </h3>
+                    <div className="mt-3 divide-y divide-stone border-t border-b border-stone">
+                      {parsed.experience!.map((job, i) => (
+                        <div key={i} className="py-4">
+                          <div className="flex flex-wrap items-baseline justify-between gap-x-4">
+                            <p className="font-bold text-midnight">
+                              {job.title}
+                              {job.organization && (
+                                <span className="font-semibold text-oxford">
+                                  {" "}· {job.organization}
+                                </span>
+                              )}
+                            </p>
+                            <p className="text-sm text-steel">
+                              {[job.start_date, job.end_date].filter(Boolean).join(" — ")}
+                              {job.location ? ` · ${job.location}` : ""}
+                            </p>
+                          </div>
+                          {(job.highlights?.length ?? 0) > 0 && (
+                            <ul className="mt-1.5 list-disc space-y-1 pl-5 text-[15px] leading-6 text-midnight">
+                              {job.highlights!.map((h, j) => (
+                                <li key={j}>{h}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {(parsed.skills?.length ?? 0) > 0 && (
+                  <div className="mt-8">
+                    <h3 className="text-sm font-bold uppercase tracking-wide text-steel">
+                      Skills from their resume
+                    </h3>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {parsed.skills!.map((s) => (
+                        <span key={s} className="rounded bg-stone px-2.5 py-1 text-sm font-semibold text-midnight">
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {(parsed.education?.length ?? 0) > 0 && (
+                  <div className="mt-8">
+                    <h3 className="text-sm font-bold uppercase tracking-wide text-steel">
+                      Education
+                    </h3>
+                    <div className="mt-2 space-y-1.5">
+                      {parsed.education!.map((ed, i) => (
+                        <p key={i} className="text-[15px] text-midnight">
+                          <b>{ed.institution}</b>
+                          {ed.degree ? ` — ${ed.degree}` : ""}
+                          {ed.grad_year ? `, ${ed.grad_year}` : ""}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </section>
+        )}
       </div>
     </div>
   );

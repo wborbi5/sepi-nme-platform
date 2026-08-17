@@ -3,7 +3,11 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { updateOwnProfile } from "@/app/settings/profile/actions";
+import {
+  parseMyResume,
+  updateOwnProfile,
+  writeMyBio,
+} from "@/app/settings/profile/actions";
 import type { ProfileRow } from "@/lib/data";
 
 /*
@@ -37,7 +41,12 @@ export default function ProfileEditForm({ profile }: { profile: ProfileRow }) {
   const [avatarPath, setAvatarPath] = useState(profile.avatar_path ?? "");
   const [resumePath, setResumePath] = useState(profile.resume_path ?? "");
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-  const [busy, setBusy] = useState<"" | "avatar" | "resume" | "save">("");
+  const [busy, setBusy] = useState<
+    "" | "avatar" | "resume" | "parse" | "bio" | "save"
+  >("");
+  const [parseNote, setParseNote] = useState("");
+  const [bio, setBio] = useState(profile.bio ?? "");
+  const [bioNote, setBioNote] = useState("");
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
   const avatarInput = useRef<HTMLInputElement>(null);
@@ -90,8 +99,26 @@ export default function ProfileEditForm({ profile }: { profile: ProfileRow }) {
         .upload(path, file, { upsert: true, contentType: "application/pdf" });
       if (upErr) throw new Error(upErr.message);
       setResumePath(path);
+      await runParse(); // raw PDF is safe; now build the structured view
     } catch (e) {
       setError(e instanceof Error ? e.message : "Resume upload failed — try again.");
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function runParse() {
+    setParseNote("");
+    setBusy("parse");
+    try {
+      const result = await parseMyResume();
+      setParseNote(
+        result.ok
+          ? "Parsed ✓ — experience and skills now show on your profile."
+          : result.message
+      );
+    } catch {
+      setParseNote("Parsing hit an error — your PDF is safe; try again later.");
     } finally {
       setBusy("");
     }
@@ -179,8 +206,42 @@ export default function ProfileEditForm({ profile }: { profile: ProfileRow }) {
       </div>
 
       <div>
-        <label className={labelCls} htmlFor="bio">Bio</label>
-        <textarea id="bio" name="bio" rows={5} defaultValue={profile.bio ?? ""} placeholder="Who you are, what you're building, what you care about." className={inputCls} />
+        <label className={labelCls} htmlFor="bio">
+          Bio
+          <button
+            type="button"
+            disabled={busy === "bio"}
+            onClick={async () => {
+              setBioNote("");
+              setBusy("bio");
+              try {
+                const result = await writeMyBio();
+                if (result.ok && result.bio) setBio(result.bio);
+                setBioNote(result.message);
+              } catch {
+                setBioNote("Draft failed — try again.");
+              } finally {
+                setBusy("");
+              }
+            }}
+            className="btn float-right cursor-pointer rounded-full border-0 bg-transparent px-2 py-0 font-bold normal-case text-oxford hover:underline disabled:opacity-60"
+          >
+            {busy === "bio" ? "Writing…" : "✎ Write it for me"}
+          </button>
+        </label>
+        <textarea
+          id="bio"
+          name="bio"
+          rows={5}
+          value={bio}
+          onChange={(e) => setBio(e.target.value)}
+          placeholder="Who you are, what you're building, what you care about."
+          className={inputCls}
+        />
+        {bioNote && <p className="mt-1 text-sm font-semibold text-steel">{bioNote}</p>}
+        <p className="mt-1 text-xs text-steel">
+          Drafts pull from your resume, skills, and interests — edit before saving.
+        </p>
       </div>
 
       <div>
@@ -212,13 +273,36 @@ export default function ProfileEditForm({ profile }: { profile: ProfileRow }) {
           <button
             type="button"
             onClick={() => resumeInput.current?.click()}
-            disabled={busy === "resume"}
+            disabled={busy === "resume" || busy === "parse"}
             className="btn rounded-full border border-coolgray bg-paper px-5 py-2.5 text-sm font-bold text-midnight hover:bg-cream disabled:opacity-60"
           >
-            {busy === "resume" ? "Uploading…" : resumePath ? "Replace resume" : "Upload resume"}
+            {busy === "resume"
+              ? "Uploading…"
+              : busy === "parse"
+                ? "Parsing…"
+                : resumePath
+                  ? "Replace resume"
+                  : "Upload resume"}
           </button>
-          {resumePath && <span className="text-sm text-steel">PDF on file ✓</span>}
+          {resumePath && busy !== "parse" && (
+            <>
+              <span className="text-sm text-steel">PDF on file ✓</span>
+              <button
+                type="button"
+                onClick={runParse}
+                className="btn cursor-pointer rounded-full border-0 bg-transparent px-2 py-2 text-sm font-bold text-oxford hover:underline"
+              >
+                Re-parse
+              </button>
+            </>
+          )}
         </div>
+        {busy === "parse" && (
+          <p className="mt-1 text-sm text-steel">
+            Reading your resume — takes about 20 seconds…
+          </p>
+        )}
+        {parseNote && <p className="mt-1 text-sm font-semibold text-steel">{parseNote}</p>}
       </div>
 
       {/* ------------------------------------------------------------ save */}

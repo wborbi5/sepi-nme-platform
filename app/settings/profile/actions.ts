@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { parseResumeForProfile } from "@/lib/resume-parser";
 
 /*
  * Self-service profile update. Session client on purpose: RLS only lets
@@ -65,4 +66,50 @@ export async function updateOwnProfile(formData: FormData): Promise<void> {
   revalidatePath("/people");
   revalidatePath("/settings/profile");
   revalidatePath("/p/[slug]", "page");
+}
+
+/*
+ * Run LlamaExtract over the caller's own uploaded resume. Synchronous —
+ * the form shows "Parsing…" while this waits (typically 10-30s; the
+ * page exports maxDuration 60 to cover it).
+ */
+/* Draft a bio from resume + skills + interests + LinkedIn. Returns the
+ * draft for the member to edit — nothing is saved until they hit Save. */
+export async function writeMyBio(): Promise<{
+  ok: boolean;
+  bio?: string;
+  message: string;
+}> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not signed in");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select(
+      "full_name, major, grad_year, pledge_class, position, skills, interests, linkedin_url, resume_parsed"
+    )
+    .eq("id", user.id)
+    .single();
+  if (!profile) throw new Error("Profile not found");
+
+  const { generateBio } = await import("@/lib/bio-writer");
+  return generateBio(profile);
+}
+
+export async function parseMyResume(): Promise<{ ok: boolean; message: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not signed in");
+
+  const result = await parseResumeForProfile(user.id);
+  if (result.ok) {
+    revalidatePath("/settings/profile");
+    revalidatePath("/p/[slug]", "page");
+  }
+  return result;
 }

@@ -165,12 +165,14 @@ export default function SiteNav({
                 Σ
               </span>
             )}
-            <Link
-              href={authed ? "/companies" : "/login"}
-              className="btn inline-flex items-center rounded-full bg-navy px-6 py-2.5 text-[15px] font-bold text-white hover:bg-oxford"
-            >
-              {authed ? "Portal" : "Sign up"}
-            </Link>
+            {!authed && (
+              <Link
+                href="/login"
+                className="btn inline-flex items-center rounded-full bg-navy px-6 py-2.5 text-[15px] font-bold text-white hover:bg-oxford"
+              >
+                Sign up
+              </Link>
+            )}
           </div>
         </div>
 

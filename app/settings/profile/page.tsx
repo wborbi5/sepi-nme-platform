@@ -6,6 +6,10 @@ import { createClient, supabaseConfigured } from "@/lib/supabase/server";
 
 export const metadata = { title: "Edit profile — SEPi Portal" };
 
+// Resume parsing (parseMyResume) waits on LlamaExtract; give the
+// serverless function room beyond the 10s default.
+export const maxDuration = 60;
+
 export default async function EditProfilePage() {
   if (!supabaseConfigured()) redirect("/");
 

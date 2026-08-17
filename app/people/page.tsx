@@ -12,21 +12,24 @@ export const metadata = { title: "People — SEPi Portal" };
 
 function PersonRow({ p }: { p: ProfileRow }) {
   const avatar = publicStorageUrl("avatars", p.avatar_path);
+  const profileHref = p.slug ? `/p/${p.slug}` : "#";
   return (
-    <Link
-      href={p.slug ? `/p/${p.slug}` : "#"}
-      className="flex flex-col gap-4 py-8 sm:flex-row sm:gap-6"
-    >
-      <span className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden bg-powder text-2xl font-bold text-navy">
+    <div className="flex flex-col gap-4 py-8 sm:flex-row sm:gap-6">
+      <Link
+        href={profileHref}
+        className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden bg-powder text-2xl font-bold text-navy"
+      >
         {avatar ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={avatar} alt="" className="h-full w-full object-cover" />
         ) : (
           (p.full_name ?? "?").charAt(0)
         )}
-      </span>
-      <span className="min-w-0">
-        <span className="block font-bold text-midnight">{p.full_name}</span>
+      </Link>
+      <div className="min-w-0">
+        <Link href={profileHref} className="block font-bold text-midnight hover:text-oxford">
+          {p.full_name}
+        </Link>
         {p.position && (
           <span className="block font-semibold text-midnight">{p.position}</span>
         )}
@@ -39,8 +42,31 @@ function PersonRow({ p }: { p: ProfileRow }) {
             {p.grad_year ? ` · Class of ${p.grad_year}` : ""}
           </span>
         )}
-      </span>
-    </Link>
+        {/* findability: LinkedIn + resume surfaced right in the directory */}
+        {(p.linkedin_url || p.resume_path) && (
+          <span className="mt-2 flex flex-wrap gap-2">
+            {p.linkedin_url && (
+              <a
+                href={p.linkedin_url}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded bg-stone px-2.5 py-1 text-xs font-bold text-oxford hover:bg-powder"
+              >
+                LinkedIn ↗
+              </a>
+            )}
+            {p.resume_path && (
+              <Link
+                href={profileHref}
+                className="rounded bg-stone px-2.5 py-1 text-xs font-bold text-oxford hover:bg-powder"
+              >
+                Resume →
+              </Link>
+            )}
+          </span>
+        )}
+      </div>
+    </div>
   );
 }
 
