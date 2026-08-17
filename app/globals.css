@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------
+ * SEPi Portal — YC-inspired look.
+ * Clean cream canvas, SEPi navy palette carries the text.
+ * Display serif (Playfair) for the big italic headlines,
+ * Nunito Sans everywhere else — closest free pairing to the YC site.
+ * ------------------------------------------------------------------ */
+
+:root {
+  /* canvas */
+  --cream: #f7f5ef;
+  --cream-deep: #f0ede3;
+  --paper: #ffffff;
+
+  /* SEPi palette — text and brand */
+  --midnight: #101828;
+  --executive-navy: #1f3a5f;
+  --slate-blue: #516b84;
+  --steel-gray: #6b7280;
+  --cool-gray: #d1d5db;
+  --stone: #e5e7eb;
+  --mist-blue: #a7b6c5;
+  --oxford-blue: #2c4a73;
+  --powder-blue: #bfcfdd;
+  --cobalt: #1b2a8c;
+
+  --color-success: #15803d;
+  --color-warning: #b45309;
+  --color-danger: #b91c1c;
+}
+
+@theme inline {
+  --color-cream: var(--cream);
+  --color-cream-deep: var(--cream-deep);
+  --color-paper: var(--paper);
+  --color-midnight: var(--midnight);
+  --color-navy: var(--executive-navy);
+  --color-slate-blue: var(--slate-blue);
+  --color-steel: var(--steel-gray);
+  --color-coolgray: var(--cool-gray);
+  --color-stone: var(--stone);
+  --color-mist: var(--mist-blue);
+  --color-oxford: var(--oxford-blue);
+  --color-powder: var(--powder-blue);
+  --color-cobalt: var(--cobalt);
+
+  --font-sans: var(--font-nunito), "Avenir", "Segoe UI", system-ui, sans-serif;
+  --font-display: var(--font-playfair), "Georgia", serif;
+}
+
+html {
+  background: var(--cream);
+  color: var(--midnight);
+}
+
+body {
+  font-family: var(--font-nunito), "Avenir", "Segoe UI", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The big italic serif headline treatment from the YC pages */
+.display-serif {
+  font-family: var(--font-playfair), Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--midnight);
+}
+
+/* Drop cap for the story section */
+.drop-cap::first-letter {
+  font-family: var(--font-playfair), Georgia, serif;
+  font-style: normal;
+  font-weight: 700;
+  float: left;
+  font-size: 4.6em;
+  line-height: 0.82;
+  padding-right: 0.12em;
+  color: var(--midnight);
+}
+
+/* Every interactive element ≥ 44px touch target */
+button, a.btn, input, select {
+  min-height: 44px;
+}
