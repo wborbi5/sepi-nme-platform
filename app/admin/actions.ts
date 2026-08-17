@@ -88,8 +88,11 @@ export async function updateMember(formData: FormData): Promise<void> {
     const active = formData.get("is_active");
     if (active !== null) patch.is_active = active === "true";
 
-    const service = createServiceClient();
-    const { error } = await service.from("profiles").update(patch).eq("id", id);
+    // Session client on purpose: the profiles privilege-guard trigger
+    // checks is_admin() via auth.uid(), which the service role doesn't
+    // have. The admin RLS policy authorizes this write as the admin.
+    const supabase = await createClient();
+    const { error } = await supabase.from("profiles").update(patch).eq("id", id);
     if (error) throw new Error(error.message);
 
     revalidatePath("/admin/members");
