@@ -33,7 +33,7 @@ export default async function HomePage() {
           <div className="mt-14 max-w-md text-left">
             <p className="display-serif text-[17px] leading-7 text-midnight">
               <span style={{ fontStyle: "normal" }}>[1]</span> &ldquo;Our members think
-              differently — in the way they think, build and network.&rdquo;
+              differently — in the way they build, network and grow.&rdquo;
             </p>
             <p className="display-serif mt-3 text-right text-[16px] text-midnight">
               — Sigma Eta Pi
