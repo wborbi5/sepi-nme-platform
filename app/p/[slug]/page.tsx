@@ -226,7 +226,7 @@ export default async function ProfilePage({
 
           <div className="text-[17px] leading-8 text-midnight">
             {profile.bio ? (
-              <p>{profile.bio}</p>
+              <p className="whitespace-pre-line">{profile.bio}</p>
             ) : (
               <p className="text-slate-blue">
                 No bio yet{profile.full_name ? ` — ${profile.full_name.split(" ")[0]} hasn't written one` : ""}.

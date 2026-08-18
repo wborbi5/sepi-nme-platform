@@ -34,7 +34,7 @@ function PersonRow({ p }: { p: ProfileRow }) {
           <span className="block font-semibold text-midnight">{p.position}</span>
         )}
         {p.bio && (
-          <span className="mt-1 block leading-7 text-midnight">{p.bio}</span>
+          <span className="mt-1 block whitespace-pre-line leading-7 text-midnight">{p.bio}</span>
         )}
         {!p.bio && p.major && (
           <span className="mt-1 block text-slate-blue">
