@@ -11,15 +11,37 @@ const eventSchema = z.object({
   location: z.string().trim().max(120).optional(),
   description: z.string().trim().max(500).optional(),
   week_number: z.union([z.coerce.number().int().min(0).max(52), z.literal("")]).optional(),
+  end_date: z
+    .union([z.string().regex(/^\d{4}-\d{2}-\d{2}$/), z.literal("")])
+    .optional(),
+  calendar: z.enum(["chapter", "external"]).default("chapter"),
+  category: z
+    .union([
+      z.enum([
+        "chapter",
+        "mandatory",
+        "professional",
+        "social",
+        "recruitment",
+        "optional",
+      ]),
+      z.literal(""),
+    ])
+    .optional(),
 });
 
 function toRow(parsed: z.infer<typeof eventSchema>) {
+  if (parsed.end_date && parsed.end_date < parsed.event_date)
+    throw new Error("End date cannot be before the start date");
   return {
     title: parsed.title,
     event_date: parsed.event_date,
     start_time: parsed.start_time || null,
     location: parsed.location || null,
     description: parsed.description || null,
+    end_date: parsed.end_date || null,
+    calendar: parsed.calendar,
+    category: parsed.category || null,
     week_number:
       parsed.week_number === "" || parsed.week_number == null
         ? null

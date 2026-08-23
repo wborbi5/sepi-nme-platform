@@ -36,6 +36,8 @@ const RESOURCE_LINKS = [
 
 const EMPTY_SESSION: NavSession = {
   initial: null,
+  fullName: null,
+  slug: null,
   isAdmin: false,
   userId: null,
   balance: null,

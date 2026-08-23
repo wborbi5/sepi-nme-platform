@@ -5,11 +5,23 @@ type CalEvent = {
   id: string;
   title: string;
   event_date: string;
+  end_date: string | null;
   start_time: string | null;
   location: string | null;
   description: string | null;
   week_number: number | null;
+  calendar: "chapter" | "external";
+  category: string | null;
 };
+
+const CATEGORIES = [
+  "chapter",
+  "mandatory",
+  "professional",
+  "social",
+  "recruitment",
+  "optional",
+];
 
 export default async function AdminCalendar() {
   let events: CalEvent[] = [];
@@ -33,9 +45,20 @@ export default async function AdminCalendar() {
     <>
       <input name="title" required defaultValue={e?.title ?? ""} placeholder="title" className={`${input} w-40`} />
       <input name="event_date" type="date" required defaultValue={e?.event_date ?? ""} className={input} />
+      <input name="end_date" type="date" defaultValue={e?.end_date ?? ""} title="end date (multi-day)" className={input} />
       <input name="start_time" type="time" defaultValue={e?.start_time?.slice(0, 5) ?? ""} className={input} />
       <input name="location" defaultValue={e?.location ?? ""} placeholder="location" className={`${input} w-28`} />
       <input name="description" defaultValue={e?.description ?? ""} placeholder="description" className={`${input} w-44`} />
+      <select name="calendar" defaultValue={e?.calendar ?? "chapter"} className={input}>
+        <option value="chapter">chapter</option>
+        <option value="external">external</option>
+      </select>
+      <select name="category" defaultValue={e?.category ?? ""} className={input}>
+        <option value="">(no category)</option>
+        {CATEGORIES.map((c) => (
+          <option key={c} value={c}>{c}</option>
+        ))}
+      </select>
       <input name="week_number" defaultValue={e?.week_number ?? ""} placeholder="wk#" inputMode="numeric" className={`${input} w-12`} />
     </>
   );

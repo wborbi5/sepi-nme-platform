@@ -1,13 +1,15 @@
 import Link from "next/link";
+import RollCall from "@/components/RollCall";
 import SiteNav from "@/components/SiteNav";
-import { getFeed, getNavSession } from "@/lib/data";
+import { isDay, today } from "@/lib/day";
+import { getFeed, getNavSession, getRollCall } from "@/lib/data";
 
 export const metadata = { title: "Updates — SEPi Portal" };
 
 /*
- * The feed. Modern, high-luxury restraint: generous serif headline, one
- * centered column, hairline rules between entries, no cards-on-cards.
- * Posts and investment events merged by timestamp.
+ * Roll Call sits on top — today's check-ins and goals, the thing people
+ * open on a phone standing in the room. The feed (posts + investments)
+ * runs below it, unchanged.
  */
 
 function fmtDate(iso: string) {
@@ -18,12 +20,33 @@ function fmtDate(iso: string) {
   });
 }
 
-export default async function UpdatesPage() {
+export default async function UpdatesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ day?: string }>;
+}) {
+  const { day: requested } = await searchParams;
+  const todayDay = today();
+  const day = isDay(requested) ? requested : todayDay;
+
   const [feed, nav] = await Promise.all([getFeed(), getNavSession()]);
+  const board = await getRollCall(day, nav.userId);
 
   return (
     <div className="min-h-screen bg-cream">
       <SiteNav session={nav} />
+
+      <div className="mx-auto max-w-5xl px-6 pb-24">
+        {nav.userId && (
+          <RollCall
+            board={board}
+            viewerId={nav.userId}
+            viewerName={nav.fullName ?? "You"}
+            viewerSlug={nav.slug}
+            today={todayDay}
+          />
+        )}
+      </div>
 
       <div className="mx-auto max-w-2xl px-6 pb-24">
         <h1 className="display-serif pb-6 pt-14 text-center text-6xl">Updates</h1>
