@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 260" role="img" aria-label="AI Answered">
+  <g fill="#0c0c0c" font-family="Arial, Helvetica, sans-serif" font-weight="bold">
+    <text x="28" y="178" font-size="190" letter-spacing="6">A</text>
+    <!-- I stem, shortened so the lens sits on top -->
+    <rect x="196" y="86" width="46" height="92"/>
+    <!-- beam from the A to the lens -->
+    <path d="M118 150 L196 52 L218 66 Z" fill="#9a9a9a"/>
+    <!-- magnifying glass -->
+    <circle cx="230" cy="44" r="34" fill="none" stroke="#0c0c0c" stroke-width="14"/>
+    <circle cx="230" cy="44" r="12"/>
+    <rect x="252" y="66" width="44" height="15" rx="7" transform="rotate(40 252 66)"/>
+    <text x="28" y="240" font-size="48" letter-spacing="2">ANSWERED</text>
+  </g>
+</svg>

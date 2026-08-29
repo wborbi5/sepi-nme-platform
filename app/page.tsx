@@ -4,6 +4,16 @@ import { getCompanies, getNavSession, publicStorageUrl } from "@/lib/data";
 
 export const revalidate = 300;
 
+/* Companies SEPi members work and intern at. Static assets in
+   public/work-logos — add a file there and a row here. */
+const WORK_LOGOS = [
+  { name: "Shaker Recruitment Marketing", src: "/work-logos/shaker.svg" },
+  { name: "AI Answered", src: "/work-logos/ai-answered.svg" },
+  { name: "DRiP", src: "/work-logos/drip.svg" },
+  { name: "Cintrifuse", src: "/work-logos/cintrifuse.svg" },
+  { name: "Stack", src: "/work-logos/stack.svg" },
+];
+
 export default async function HomePage() {
   const [companies, nav] = await Promise.all([
     getCompanies(),
@@ -106,6 +116,35 @@ export default async function HomePage() {
               </Link>
             </p>
           )}
+        </div>
+      </section>
+
+      {/* -------------------------------------------- where members work */}
+      <section className="py-20">
+        <div className="mx-auto max-w-6xl px-6">
+          <h2 className="display-serif text-center text-4xl sm:text-5xl">
+            Where Members Work
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-center text-slate-blue">
+            Companies SEPi members work and intern at.
+          </p>
+
+          <div className="mt-12 grid grid-cols-2 gap-px bg-stone sm:grid-cols-3 lg:grid-cols-5">
+            {WORK_LOGOS.map((c) => (
+              <div
+                key={c.name}
+                className="flex aspect-[3/2] items-center justify-center bg-cream p-6"
+                title={c.name}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={c.src}
+                  alt={c.name}
+                  className="max-h-16 w-auto max-w-full object-contain"
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

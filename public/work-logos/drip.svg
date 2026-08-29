@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 200" role="img" aria-label="DRiP">
+  <g fill="#0c0c0c" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="150">
+    <text x="10" y="165">DR</text>
+    <text x="242" y="165">&#305;</text>
+    <text x="300" y="165">P</text>
+  </g>
+  <!-- droplet dotting the i -->
+  <path
+    d="M262 12 C262 12 240 44 240 58 C240 71 250 80 262 80 C274 80 284 71 284 58 C284 44 262 12 262 12 Z"
+    fill="#2589bd"
+  />
+</svg>
