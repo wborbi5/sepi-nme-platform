@@ -28,6 +28,10 @@ export default async function ProfilePage({
   ]);
 
   let profile = profiles.find((p) => p.slug === slug) ?? null;
+  // Profiles without a slug yet are linked by id from /people.
+  if (!profile && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(slug)) {
+    profile = profiles.find((p) => p.id === slug) ?? null;
+  }
 
   // /p/me → the signed-in member's own profile
   if (!profile && slug === "me" && nav.userId) {
