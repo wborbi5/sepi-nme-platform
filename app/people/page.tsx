@@ -12,7 +12,7 @@ export const metadata = { title: "People — SEPi Portal" };
 
 function PersonRow({ p }: { p: ProfileRow }) {
   const avatar = publicStorageUrl("avatars", p.avatar_path);
-  const profileHref = p.slug ? `/p/${p.slug}` : "#";
+  const profileHref = p.slug ? `/p/${p.slug}` : `/p/${p.id}`;
   return (
     <div className="flex flex-col gap-4 py-8 sm:flex-row sm:gap-6">
       <Link

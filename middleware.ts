@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 /*
  * Auth wall. The homepage cover and the login page are the only public
  * routes — clicking anything in the nav while logged out lands on /login,
- * which is the sign-up entry point (magic link, invite-only).
+ * which is the sign-in entry point (magic link, invite-only).
  */
 
 const PUBLIC_PATHS = ["/", "/login"];

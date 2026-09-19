@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { parseResumeForProfile } from "@/lib/resume-parser";
+import { slugify } from "@/lib/slug";
 
 /*
  * Self-service profile update. Session client on purpose: RLS only lets
@@ -60,12 +61,22 @@ export async function updateOwnProfile(formData: FormData): Promise<void> {
   if (parsed.avatar_path) patch.avatar_path = parsed.avatar_path;
   if (parsed.resume_path) patch.resume_path = parsed.resume_path;
 
+  const { data: existing } = await supabase
+    .from("profiles")
+    .select("slug")
+    .eq("id", user.id)
+    .single();
+  if (!existing?.slug) {
+    patch.slug = slugify(parsed.full_name);
+  }
+
   const { error } = await supabase.from("profiles").update(patch).eq("id", user.id);
   if (error) throw new Error(error.message);
 
   revalidatePath("/people");
   revalidatePath("/settings/profile");
   revalidatePath("/p/[slug]", "page");
+  revalidatePath("/onboarding");
 }
 
 /*

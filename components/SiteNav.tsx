@@ -8,7 +8,7 @@ import type { NavSession } from "@/lib/data";
 
 /*
  * The YC-style option bar. Seal sits center, links flank it, and the
- * Apply button is replaced by Sign up. Every destination except the
+ * Apply button is replaced by Sign in. Every destination except the
  * homepage is auth-walled by middleware.
  *
  * During the investment window the header goes sticky and pins the
@@ -174,7 +174,7 @@ export default function SiteNav({
                 href="/login"
                 className="btn inline-flex items-center rounded-full bg-navy px-6 py-2.5 text-[15px] font-bold text-white hover:bg-oxford"
               >
-                Sign up
+                Sign in
               </Link>
             )}
           </div>
@@ -194,7 +194,7 @@ export default function SiteNav({
               href="/login"
               className="btn inline-flex items-center rounded-full bg-navy px-5 py-2 text-sm font-bold text-white"
             >
-              Sign up
+              Sign in
             </Link>
           )}
           <button
