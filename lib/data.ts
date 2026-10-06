@@ -370,6 +370,25 @@ export async function getSettings(): Promise<AppSettings | null> {
 
 export type CompanyTotals = { company_id: string; raised: number; backer_count: number };
 
+export type MentorRow = {
+  id: string;
+  linkedin_url: string;
+  linkedin_slug: string | null;
+  display_name: string | null;
+  created_at: string;
+};
+
+export async function getMentors(): Promise<MentorRow[]> {
+  if (!supabaseConfigured()) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("mentors")
+    .select("id, linkedin_url, linkedin_slug, display_name, created_at")
+    .order("created_at", { ascending: false });
+  if (error || !data) return [];
+  return data as MentorRow[];
+}
+
 export async function getCompanyTotals(): Promise<CompanyTotals[]> {
   if (!supabaseConfigured()) return [];
   const supabase = await createClient();
