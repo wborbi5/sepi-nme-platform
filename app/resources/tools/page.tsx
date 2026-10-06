@@ -82,7 +82,41 @@ export default async function ToolsPage() {
           Tools SEPi members use to build and run companies.
         </p>
 
-        <ul className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <a
+          href="https://startupready.ai"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-12 flex min-h-[44px] flex-col gap-5 rounded-xl border-2 border-navy bg-paper p-6 hover:bg-cream sm:flex-row sm:items-center sm:gap-8 sm:p-8"
+        >
+          {/* Logo served by startupready.ai (square mark / favicon). */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="https://umsousercontent.com/lib_oZDgpsROrdeGNzbh/7a3ibnnnqq2qxhmp.png?w=160&h=160"
+            alt="Startup.Ready. logo"
+            width={80}
+            height={80}
+            className="h-20 w-20 shrink-0"
+          />
+          <span>
+            <span className="text-xs font-bold uppercase tracking-[0.08em] text-slate-blue">
+              Featured
+            </span>
+            <h2 className="display-serif mt-1 text-3xl leading-tight sm:text-4xl">
+              Startup.Ready.
+            </h2>
+            <p className="mt-3 text-[17px] leading-8 text-midnight">
+              Full-scale guide for building your company and understanding the
+              gates. Free Startup Readiness Score across six pillars (Founder,
+              Problem, Market, Business Model, Go-to-Market, Financial), then
+              worksheets to close your gaps.
+            </p>
+            <span className="mt-3 block text-sm leading-6 text-slate-blue">
+              Dr. Shaun Digan / Startup.Ready.
+            </span>
+          </span>
+        </a>
+
+        <ul className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
           {TOOLS.map((tool) => (
             <li key={tool.name}>
               <a
