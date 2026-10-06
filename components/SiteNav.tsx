@@ -31,7 +31,6 @@ const MEMBER_LINKS = [
 const RESOURCE_LINKS = [
   { href: "/resources/internships", label: "Internship Opportunities" },
   { href: "/resources/requests-for-startups", label: "Requests for Startups" },
-  { href: "/resources/events", label: "Events" },
   { href: "/resources/tools", label: "Tools" },
   { href: "/resources/mentor-directory", label: "Mentor Directory" },
 ];
