@@ -6,7 +6,7 @@ export default function InternshipsPage() {
   return (
     <ResourceStub
       title="Internship Opportunities"
-      blurb="Openings sourced through the SEPi network. Content coming soon."
+      blurb="Nothing for now, let us know if you are interested"
     />
   );
 }
