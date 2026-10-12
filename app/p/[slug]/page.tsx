@@ -9,6 +9,7 @@ import {
 import { createClient, supabaseConfigured } from "@/lib/supabase/server";
 import { createServiceClient, serviceRoleConfigured } from "@/lib/supabase/admin";
 import { signOut } from "@/app/auth/actions";
+import { summer27Answer } from "@/lib/summer-27";
 
 /*
  * Member profile in the Garry Tan page layout: breadcrumb, huge italic
@@ -88,6 +89,11 @@ export default async function ProfilePage({
   if (profile.major) details.push({ label: "Major", value: profile.major });
   if (profile.grad_year)
     details.push({ label: "Graduation year", value: profile.grad_year });
+  const summerAnswer = summer27Answer(
+    profile.summer_27_plan,
+    profile.summer_27_plan_other
+  );
+  if (summerAnswer) details.push({ label: "Summer 27", value: summerAnswer });
   if (big)
     details.push({
       label: "Big",

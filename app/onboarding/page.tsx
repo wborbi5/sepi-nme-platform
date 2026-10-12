@@ -12,6 +12,8 @@ export const maxDuration = 60;
 /*
  * First-run onboarding. Role is already set at invite time — this step
  * collects the profile fields the directory and NME tracker need.
+ * ProfileEditForm includes "Plans for summer 27?". That answer is optional
+ * and stays out of the completion check below.
  */
 
 function progress(done: number, total: number) {

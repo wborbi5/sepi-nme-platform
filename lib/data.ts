@@ -1,4 +1,5 @@
 import { createClient, supabaseConfigured } from "@/lib/supabase/server";
+import type { Summer27Plan } from "@/lib/summer-27";
 
 /*
  * Read-side data access for the portal pages. Every fetcher returns an
@@ -44,6 +45,8 @@ export type ProfileRow = {
   resume_parsed: import("@/lib/resume-parser").ParsedResume | null;
   avatar_path: string | null;
   big_id: string | null;
+  summer_27_plan: Summer27Plan | null;
+  summer_27_plan_other: string | null;
 };
 
 export function publicStorageUrl(bucket: string, path: string | null) {
@@ -82,7 +85,7 @@ export async function getProfiles(): Promise<ProfileRow[]> {
   const { data } = await supabase
     .from("profiles")
     .select(
-      "id, slug, full_name, role, position, major, grad_year, pledge_class, skills, interests, bio, linkedin_url, resume_path, resume_parsed, avatar_path, big_id"
+      "id, slug, full_name, role, position, major, grad_year, pledge_class, skills, interests, bio, linkedin_url, resume_path, resume_parsed, avatar_path, big_id, summer_27_plan, summer_27_plan_other"
     )
     .eq("is_active", true)
     .order("full_name");

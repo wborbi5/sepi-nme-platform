@@ -5,6 +5,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { parseResumeForProfile } from "@/lib/resume-parser";
 import { slugify } from "@/lib/slug";
+import { SUMMER_27_PLAN_VALUES, summer27Patch } from "@/lib/summer-27";
 
 /*
  * Self-service profile update. Session client on purpose: RLS only lets
@@ -26,6 +27,8 @@ const schema = z.object({
   interests: z.string().optional(),
   avatar_path: z.string().optional(),
   resume_path: z.string().optional(),
+  summer_27_plan: z.union([z.enum(SUMMER_27_PLAN_VALUES), z.literal("")]).optional(),
+  summer_27_plan_other: z.string().trim().max(200).optional(),
 });
 
 function csvToArray(v: string | undefined): string[] {
@@ -57,6 +60,7 @@ export async function updateOwnProfile(formData: FormData): Promise<void> {
     linkedin_url: parsed.linkedin_url || null,
     skills: csvToArray(parsed.skills),
     interests: csvToArray(parsed.interests),
+    ...summer27Patch(parsed.summer_27_plan, parsed.summer_27_plan_other),
   };
   if (parsed.avatar_path) patch.avatar_path = parsed.avatar_path;
   if (parsed.resume_path) patch.resume_path = parsed.resume_path;

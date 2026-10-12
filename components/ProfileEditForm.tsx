@@ -9,6 +9,11 @@ import {
   writeMyBio,
 } from "@/app/settings/profile/actions";
 import type { ProfileRow } from "@/lib/data";
+import {
+  SUMMER_27_PLAN_OPTIONS,
+  isSummer27Plan,
+  type Summer27Plan,
+} from "@/lib/summer-27";
 
 /*
  * Self-service profile editor. Files go browser → Supabase Storage
@@ -49,6 +54,10 @@ export default function ProfileEditForm({ profile }: { profile: ProfileRow }) {
   const [bioNote, setBioNote] = useState("");
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
+  const [summerPlan, setSummerPlan] = useState<Summer27Plan | "">(
+    profile.summer_27_plan ?? ""
+  );
+  const [summerOther, setSummerOther] = useState(profile.summer_27_plan_other ?? "");
   const avatarInput = useRef<HTMLInputElement>(null);
   const resumeInput = useRef<HTMLInputElement>(null);
 
@@ -204,6 +213,42 @@ export default function ProfileEditForm({ profile }: { profile: ProfileRow }) {
         <label className={labelCls} htmlFor="pledge_class">Pledged SEPi</label>
         <input id="pledge_class" name="pledge_class" defaultValue={profile.pledge_class ?? ""} placeholder="Fall 2025" className={inputCls} />
       </div>
+
+      <div>
+        <label className={labelCls} htmlFor="summer_27_plan">Plans for summer 27?</label>
+        <select
+          id="summer_27_plan"
+          name="summer_27_plan"
+          value={summerPlan}
+          onChange={(e) => {
+            const next = e.target.value;
+            setSummerPlan(isSummer27Plan(next) ? next : "");
+          }}
+          className={inputCls}
+        >
+          <option value="">Select one</option>
+          {SUMMER_27_PLAN_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {summerPlan === "other" ? (
+        <div>
+          <label className={labelCls} htmlFor="summer_27_plan_other">Describe it</label>
+          <input
+            id="summer_27_plan_other"
+            name="summer_27_plan_other"
+            value={summerOther}
+            maxLength={200}
+            onChange={(e) => setSummerOther(e.target.value)}
+            placeholder="A sentence is enough"
+            className={inputCls}
+          />
+        </div>
+      ) : null}
 
       <div>
         <label className={labelCls} htmlFor="bio">
