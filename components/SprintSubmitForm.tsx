@@ -52,8 +52,7 @@ export default function SprintSubmitForm({
   if (done) {
     return (
       <p className="rounded-lg border border-stone bg-paper p-4 font-semibold text-midnight">
-        Submitted — pending admin approval. It counts toward the board once
-        approved.
+        Submitted. It counts on the board immediately and may be reviewed later.
       </p>
     );
   }
