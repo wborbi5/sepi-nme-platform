@@ -11,7 +11,7 @@ export async function createSprintEvent(formData: FormData): Promise<void> {
   const audience = z
     .enum(["current_member", "new_member"])
     .parse(formData.get("audience"));
-  const multiplier = z.coerce.number().min(1).max(5).parse(formData.get("multiplier") || "1.5");
+  const multiplier = z.coerce.number().min(1).max(5).parse(formData.get("multiplier") || "1.0");
   const team_a_name =
     z.string().trim().max(40).parse(formData.get("team_a_name") ?? "") || "Team A";
   const team_b_name =

@@ -3,7 +3,7 @@ import SprintSubmitForm from "@/components/SprintSubmitForm";
 import { getNavSession } from "@/lib/data";
 import { createClient, supabaseConfigured } from "@/lib/supabase/server";
 
-export const metadata = { title: "Money Sprint — SEPi Portal" };
+export const metadata = { title: "Hustle Sprint — SEPi Portal" };
 
 /*
  * Two sprint kinds can run at once: the Current Member sprint (two
@@ -39,7 +39,6 @@ export default async function SprintPage() {
   let rosters: { event_id: string; profile_id: string; team: string }[] = [];
   let rosterNames = new Map<string, string>();
   let myRole: string | null = null;
-  let myPendingByEvent = new Map<string, number>();
 
   if (supabaseConfigured()) {
     const supabase = await createClient();
@@ -58,24 +57,15 @@ export default async function SprintPage() {
 
     if (events.length > 0) {
       const ids = events.map((e) => e.id);
-      const [boardRes, rosterRes, pendingRes, profilesRes] = await Promise.all([
+      const [boardRes, rosterRes, profilesRes] = await Promise.all([
         supabase.from("sprint_leaderboard").select("*").in("event_id", ids),
         supabase.from("sprint_rosters").select("*").in("event_id", ids),
-        nav.userId
-          ? supabase
-              .from("sprint_entries")
-              .select("event_id")
-              .eq("profile_id", nav.userId)
-              .eq("status", "pending")
-          : Promise.resolve({ data: [] }),
         supabase.from("profiles").select("id, full_name"),
       ]);
       board = ((boardRes.data as BoardRow[]) ?? []).sort((x, y) => y.score - x.score);
       rosters = (rosterRes.data as typeof rosters) ?? [];
       for (const p of profilesRes.data ?? [])
         rosterNames.set(p.id, p.full_name ?? "Member");
-      for (const e of (pendingRes.data as { event_id: string }[]) ?? [])
-        myPendingByEvent.set(e.event_id, (myPendingByEvent.get(e.event_id) ?? 0) + 1);
     }
   }
 
@@ -92,7 +82,6 @@ export default async function SprintPage() {
     const teamed = event.audience === "current_member" && roster.length > 0;
     const canSubmit =
       event.status === "open" && nav.userId && myAudience === event.audience;
-    const pending = myPendingByEvent.get(event.id) ?? 0;
 
     return (
       <section className="mb-16">
@@ -106,8 +95,10 @@ export default async function SprintPage() {
               <span className="font-bold text-[#15803d]">OPEN</span>
             ) : (
               <span className="font-bold text-steel">closed</span>
-            )}{" "}
-            · pre-service ×{event.multiplier}
+            )}
+            {Number(event.multiplier) !== 1 && (
+              <> · pre-service ×{Number(event.multiplier)}</>
+            )}
           </p>
         </div>
 
@@ -145,12 +136,11 @@ export default async function SprintPage() {
         {/* submission */}
         {canSubmit && (
           <div className="mt-8">
-            {pending > 0 && (
-              <p className="mb-3 text-sm font-semibold text-[#b45309]">
-                {pending} of your entries pending approval.
-              </p>
-            )}
-            <SprintSubmitForm eventId={event.id} profileId={nav.userId!} />
+            <SprintSubmitForm
+              eventId={event.id}
+              profileId={nav.userId!}
+              multiplier={Number(event.multiplier)}
+            />
           </div>
         )}
         {event.status === "open" && myAudience && myAudience !== event.audience && (
@@ -183,8 +173,13 @@ export default async function SprintPage() {
                     </span>
                   )}
                   <span className="block text-xs text-steel">
-                    ${Number(row.delivered).toLocaleString()} delivered · $
-                    {Number(row.pre_service).toLocaleString()} pre-service
+                    ${Number(row.delivered).toLocaleString()} delivered
+                    {Number(event.multiplier) !== 1 && (
+                      <>
+                        {" "}
+                        · ${Number(row.pre_service).toLocaleString()} pre-service
+                      </>
+                    )}
                   </span>
                 </span>
               </span>
@@ -207,7 +202,7 @@ export default async function SprintPage() {
     <div className="min-h-screen bg-cream">
       <SiteNav session={nav} />
       <div className="mx-auto max-w-2xl px-6 pb-24">
-        <h1 className="display-serif py-14 text-center text-6xl">Money Sprint</h1>
+        <h1 className="display-serif py-14 text-center text-6xl">Hustle Sprint</h1>
 
         {events.length === 0 && (
           <p className="text-center text-slate-blue">

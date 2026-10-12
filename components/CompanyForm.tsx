@@ -36,7 +36,7 @@ export default function CompanyForm({
   members,
   selfId,
 }: {
-  members: { id: string; full_name: string | null }[];
+  members: { id: string; full_name: string }[];
   selfId: string;
 }) {
   const router = useRouter();
@@ -47,6 +47,7 @@ export default function CompanyForm({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
+  const otherMembers = members.filter((m) => m.id !== selfId);
 
   function toggleCofounder(id: string) {
     setCofounders((prev) =>
@@ -56,12 +57,19 @@ export default function CompanyForm({
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const form = e.currentTarget;
     setError("");
     setBusy(true);
+    const fd = new FormData(form);
+    fd.set("cofounder_ids", cofounders.join(","));
     try {
-      const fd = new FormData(e.currentTarget);
-      fd.set("cofounder_ids", cofounders.join(","));
-      const { id, slug } = await createCompany(fd);
+      const result = await createCompany(fd);
+      if (!result.ok) {
+        setError(result.error);
+        setBusy(false);
+        return;
+      }
+      const { id, slug } = result;
 
       // Logo after create — path needs the company id.
       if (logoFile) {
@@ -76,6 +84,8 @@ export default function CompanyForm({
             const logoFd = new FormData();
             logoFd.set("company_id", id);
             logoFd.set("logo_path", path);
+            // Returns { ok: false } instead of throwing. The company already
+            // exists, so a logo failure does not keep the member on this form.
             await setCompanyLogo(logoFd);
           }
         } catch {
@@ -84,8 +94,8 @@ export default function CompanyForm({
       }
 
       router.push(`/companies/${slug}`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not create company");
+    } catch {
+      setError("Could not create the company. Try again.");
       setBusy(false);
     }
   }
@@ -167,11 +177,23 @@ export default function CompanyForm({
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <div>
           <label className={labelCls} htmlFor="website_url">Website</label>
-          <input id="website_url" name="website_url" placeholder="https://…" className={inputCls} />
+          <input
+            id="website_url"
+            name="website_url"
+            inputMode="url"
+            placeholder="czarcrm.com or https://..."
+            className={inputCls}
+          />
         </div>
         <div>
           <label className={labelCls} htmlFor="demo_url">Demo link</label>
-          <input id="demo_url" name="demo_url" placeholder="https://…" className={inputCls} />
+          <input
+            id="demo_url"
+            name="demo_url"
+            inputMode="url"
+            placeholder="czarcrm.com or https://..."
+            className={inputCls}
+          />
         </div>
       </div>
 
@@ -179,29 +201,31 @@ export default function CompanyForm({
       <div>
         <span className={labelCls}>Co-founders (tap to add)</span>
         <div className="flex max-h-48 flex-wrap gap-2 overflow-y-auto rounded-md border border-coolgray bg-paper p-3">
-          {members
-            .filter((m) => m.id !== selfId)
-            .map((m) => (
-              <button
-                key={m.id}
-                type="button"
-                onClick={() => toggleCofounder(m.id)}
-                className={`btn cursor-pointer rounded-full border px-4 py-2 text-sm font-semibold ${
-                  cofounders.includes(m.id)
-                    ? "border-navy bg-navy text-white"
-                    : "border-coolgray bg-cream text-midnight"
-                }`}
-              >
-                {m.full_name ?? "Member"}
-              </button>
-            ))}
-          {members.length <= 1 && (
+          {otherMembers.map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              onClick={() => toggleCofounder(m.id)}
+              className={`btn min-h-11 cursor-pointer rounded-full border px-4 py-2 text-sm font-semibold ${
+                cofounders.includes(m.id)
+                  ? "border-navy bg-navy text-white"
+                  : "border-coolgray bg-cream text-midnight"
+              }`}
+            >
+              {m.full_name}
+            </button>
+          ))}
+          {otherMembers.length === 0 && (
             <span className="text-sm text-steel">No other members yet.</span>
           )}
         </div>
       </div>
 
-      {error && <p className="text-sm font-semibold text-[#b91c1c]">{error}</p>}
+      {error && (
+        <p role="alert" className="text-sm font-semibold text-[#b91c1c]">
+          {error}
+        </p>
+      )}
 
       <div>
         <button

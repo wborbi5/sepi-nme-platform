@@ -6,9 +6,10 @@ import { createClient } from "@/lib/supabase/client";
 import { submitSprintEntry } from "@/app/sprint/actions";
 
 /*
- * Sprint submission: dollars delivered, dollars pre-service, proof
- * photo. Camera opens directly on mobile (capture="environment"), photo
- * resizes to WebP client-side and goes straight to Storage.
+ * Sprint submission: profit, a pre-service amount only when this sprint's
+ * multiplier is not 1, and a required proof photo. Camera opens directly
+ * on mobile (capture="environment"). The photo resizes to WebP client-side
+ * and goes straight to Storage.
  */
 
 const inputCls =
@@ -33,10 +34,13 @@ async function resizeToWebp(file: File): Promise<Blob> {
 export default function SprintSubmitForm({
   eventId,
   profileId,
+  multiplier,
 }: {
   eventId: string;
   profileId: string;
+  multiplier: number;
 }) {
+  const showPreService = Number(multiplier) !== 1;
   const router = useRouter();
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [proofPreview, setProofPreview] = useState<string | null>(null);
@@ -48,8 +52,7 @@ export default function SprintSubmitForm({
   if (done) {
     return (
       <p className="rounded-lg border border-stone bg-paper p-4 font-semibold text-midnight">
-        Submitted — pending admin approval. It counts toward the board once
-        approved.
+        Submitted. It counts on the board immediately and may be reviewed later.
       </p>
     );
   }
@@ -58,25 +61,31 @@ export default function SprintSubmitForm({
     <form
       onSubmit={async (e) => {
         e.preventDefault();
+        const form = e.currentTarget;
         setError("");
+        if (!proofFile) {
+          setError("Add a proof photo before submitting.");
+          return;
+        }
         setBusy(true);
         try {
-          let proofPath = "";
-          if (proofFile) {
-            const blob = await resizeToWebp(proofFile);
-            if (blob.size > 10 * 1024 * 1024)
-              throw new Error("Proof photo is over 10MB after compression");
-            proofPath = `${profileId}/${Date.now()}.webp`;
-            const supabase = createClient();
-            const { error: upErr } = await supabase.storage
-              .from("sprint")
-              .upload(proofPath, blob, { contentType: "image/webp" });
-            if (upErr) throw new Error(upErr.message);
-          }
-          const fd = new FormData(e.currentTarget);
+          const blob = await resizeToWebp(proofFile);
+          if (blob.size > 10 * 1024 * 1024)
+            throw new Error("Proof photo is over 10MB after compression");
+          const proofPath = `${profileId}/${Date.now()}.webp`;
+          const supabase = createClient();
+          const { error: upErr } = await supabase.storage
+            .from("sprint")
+            .upload(proofPath, blob, { contentType: "image/webp" });
+          if (upErr) throw new Error(upErr.message);
+          const fd = new FormData(form);
           fd.set("event_id", eventId);
           fd.set("proof_path", proofPath);
-          await submitSprintEntry(fd);
+          const result = await submitSprintEntry(fd);
+          if (!result.ok) {
+            setError(result.error);
+            return;
+          }
           setDone(true);
           router.refresh();
         } catch (err) {
@@ -90,10 +99,10 @@ export default function SprintSubmitForm({
     >
       <h2 className="text-lg font-extrabold text-midnight">Submit money</h2>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className={`grid grid-cols-1 gap-4 ${showPreService ? "sm:grid-cols-2" : ""}`}>
         <div>
           <label className="mb-1 block text-sm font-bold text-steel" htmlFor="sp-delivered">
-            $ delivered
+            Profit (revenue minus costs), $
           </label>
           <input
             id="sp-delivered"
@@ -102,19 +111,24 @@ export default function SprintSubmitForm({
             defaultValue="0"
             className={inputCls}
           />
+          <p className="mt-1 text-xs text-steel">Real customers outside SEPi only.</p>
         </div>
-        <div>
-          <label className="mb-1 block text-sm font-bold text-steel" htmlFor="sp-pre">
-            $ pre-service (×1.5)
-          </label>
-          <input
-            id="sp-pre"
-            name="amount_pre_service"
-            inputMode="numeric"
-            defaultValue="0"
-            className={inputCls}
-          />
-        </div>
+        {showPreService ? (
+          <div>
+            <label className="mb-1 block text-sm font-bold text-steel" htmlFor="sp-pre">
+              $ pre-service (×{Number(multiplier)})
+            </label>
+            <input
+              id="sp-pre"
+              name="amount_pre_service"
+              inputMode="numeric"
+              defaultValue="0"
+              className={inputCls}
+            />
+          </div>
+        ) : (
+          <input type="hidden" name="amount_pre_service" value="0" />
+        )}
       </div>
 
       <div>
@@ -130,6 +144,7 @@ export default function SprintSubmitForm({
           type="file"
           accept="image/*"
           capture="environment"
+          aria-required="true"
           className="hidden"
           onChange={(e) => {
             const f = e.target.files?.[0];
@@ -139,20 +154,27 @@ export default function SprintSubmitForm({
             }
           }}
         />
-        <button
-          type="button"
-          onClick={() => fileInput.current?.click()}
-          className="btn rounded-full border border-coolgray bg-cream px-5 py-2.5 text-sm font-bold text-midnight"
-        >
-          {proofFile ? "Retake proof photo" : "📷 Proof photo"}
-        </button>
+        <div>
+          <button
+            type="button"
+            onClick={() => fileInput.current?.click()}
+            className="btn min-h-11 rounded-full border border-coolgray bg-cream px-5 py-2.5 text-sm font-bold text-midnight"
+          >
+            {proofFile ? "Retake proof photo" : "📷 Proof photo"}
+          </button>
+          <p className="mt-1 text-xs text-steel">Required.</p>
+        </div>
         {proofPreview && (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={proofPreview} alt="Proof preview" className="h-14 w-14 rounded object-cover" />
         )}
       </div>
 
-      {error && <p className="text-sm font-semibold text-[#b91c1c]">{error}</p>}
+      {error && (
+        <p role="alert" className="text-sm font-semibold text-[#b91c1c]">
+          {error}
+        </p>
+      )}
 
       <button
         type="submit"

@@ -95,7 +95,7 @@ export default async function AdminSprint() {
           <option value="current_member">Current member sprint</option>
         </select>
         <label>
-          ×<input name="multiplier" defaultValue="1.5" className={`${input} w-12`} />
+          ×<input name="multiplier" defaultValue="1.0" className={`${input} w-12`} />
         </label>
         <input name="team_a_name" placeholder="Team A name" className={`${input} w-28`} />
         <input name="team_b_name" placeholder="Team B name" className={`${input} w-28`} />
