@@ -1,3 +1,4 @@
+import { isEligibleCofounder } from "@/lib/cofounders";
 import { createClient, supabaseConfigured } from "@/lib/supabase/server";
 
 /*
@@ -87,6 +88,35 @@ export async function getProfiles(): Promise<ProfileRow[]> {
     .eq("is_active", true)
     .order("full_name");
   return (data as ProfileRow[]) ?? [];
+}
+
+type CofounderProfile = {
+  id: string;
+  full_name: string | null;
+  email: string | null;
+  is_active: boolean;
+};
+
+/*
+ * People the new-company form can offer as co-founders. Email is selected
+ * so the system account can be excluded. Role is not filtered.
+ */
+export async function getCofounderCandidates(): Promise<{ id: string; full_name: string }[]> {
+  if (!supabaseConfigured()) return [];
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("profiles")
+    .select("id, full_name, email, is_active")
+    .eq("is_active", true)
+    .order("full_name");
+
+  const rows = (data ?? []) as CofounderProfile[];
+  return rows.flatMap((row) => {
+    if (!isEligibleCofounder(row)) return [];
+    const full_name = row.full_name?.trim() ?? "";
+    if (!full_name) return [];
+    return [{ id: row.id, full_name }];
+  });
 }
 
 export async function getProfileBySlug(slug: string): Promise<ProfileRow | null> {
