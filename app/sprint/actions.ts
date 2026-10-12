@@ -10,16 +10,33 @@ import { createClient } from "@/lib/supabase/server";
  * browser → Storage already, we only store the path.
  */
 
+const PROOF_MESSAGE = "Add a proof photo before submitting.";
+
 const schema = z.object({
   event_id: z.string().uuid(),
   amount_delivered: z.coerce.number().int().min(0),
   amount_pre_service: z.coerce.number().int().min(0),
   description: z.string().trim().max(500).optional(),
-  proof_path: z.string().optional(),
+  proof_path: z.string().trim().min(1, PROOF_MESSAGE),
 });
 
-export async function submitSprintEntry(formData: FormData): Promise<void> {
-  const parsed = schema.parse(Object.fromEntries(formData.entries()));
+export async function submitSprintEntry(
+  formData: FormData
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const raw = Object.fromEntries(formData.entries());
+  const proof = typeof raw.proof_path === "string" ? raw.proof_path.trim() : "";
+  if (!proof) return { ok: false, error: PROOF_MESSAGE };
+
+  const parsedResult = schema.safeParse(raw);
+  if (!parsedResult.success) {
+    const proofIssue = parsedResult.error.issues.some((issue) => issue.path[0] === "proof_path");
+    if (proofIssue) return { ok: false, error: PROOF_MESSAGE };
+    return {
+      ok: false,
+      error: parsedResult.error.issues[0]?.message ?? "Check the form and try again.",
+    };
+  }
+  const parsed = parsedResult.data;
   if (parsed.amount_delivered === 0 && parsed.amount_pre_service === 0)
     throw new Error("Enter at least one non-zero amount");
 
@@ -62,10 +79,11 @@ export async function submitSprintEntry(formData: FormData): Promise<void> {
     amount_delivered: parsed.amount_delivered,
     amount_pre_service: parsed.amount_pre_service,
     description: parsed.description || null,
-    proof_path: parsed.proof_path || null,
+    proof_path: parsed.proof_path,
     team: roster?.team ?? null,
   });
   if (error) throw new Error(error.message);
 
   revalidatePath("/sprint");
+  return { ok: true };
 }

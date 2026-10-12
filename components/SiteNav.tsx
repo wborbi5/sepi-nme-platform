@@ -26,6 +26,7 @@ const RIGHT_LINKS = [{ href: "/updates", label: "Updates" }];
 const MEMBER_LINKS = [
   { href: "/calendar", label: "Calendar" },
   { href: "/portfolio", label: "Portfolio" },
+  { href: "/sprint", label: "Sprint" },
 ];
 
 const RESOURCE_LINKS = [

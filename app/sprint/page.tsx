@@ -3,7 +3,7 @@ import SprintSubmitForm from "@/components/SprintSubmitForm";
 import { getNavSession } from "@/lib/data";
 import { createClient, supabaseConfigured } from "@/lib/supabase/server";
 
-export const metadata = { title: "Money Sprint — SEPi Portal" };
+export const metadata = { title: "Hustle Sprint — SEPi Portal" };
 
 /*
  * Two sprint kinds can run at once: the Current Member sprint (two
@@ -106,8 +106,10 @@ export default async function SprintPage() {
               <span className="font-bold text-[#15803d]">OPEN</span>
             ) : (
               <span className="font-bold text-steel">closed</span>
-            )}{" "}
-            · pre-service ×{event.multiplier}
+            )}
+            {Number(event.multiplier) !== 1 && (
+              <> · pre-service ×{Number(event.multiplier)}</>
+            )}
           </p>
         </div>
 
@@ -150,7 +152,11 @@ export default async function SprintPage() {
                 {pending} of your entries pending approval.
               </p>
             )}
-            <SprintSubmitForm eventId={event.id} profileId={nav.userId!} />
+            <SprintSubmitForm
+              eventId={event.id}
+              profileId={nav.userId!}
+              multiplier={Number(event.multiplier)}
+            />
           </div>
         )}
         {event.status === "open" && myAudience && myAudience !== event.audience && (
@@ -183,8 +189,13 @@ export default async function SprintPage() {
                     </span>
                   )}
                   <span className="block text-xs text-steel">
-                    ${Number(row.delivered).toLocaleString()} delivered · $
-                    {Number(row.pre_service).toLocaleString()} pre-service
+                    ${Number(row.delivered).toLocaleString()} delivered
+                    {Number(event.multiplier) !== 1 && (
+                      <>
+                        {" "}
+                        · ${Number(row.pre_service).toLocaleString()} pre-service
+                      </>
+                    )}
                   </span>
                 </span>
               </span>
@@ -207,7 +218,7 @@ export default async function SprintPage() {
     <div className="min-h-screen bg-cream">
       <SiteNav session={nav} />
       <div className="mx-auto max-w-2xl px-6 pb-24">
-        <h1 className="display-serif py-14 text-center text-6xl">Money Sprint</h1>
+        <h1 className="display-serif py-14 text-center text-6xl">Hustle Sprint</h1>
 
         {events.length === 0 && (
           <p className="text-center text-slate-blue">
