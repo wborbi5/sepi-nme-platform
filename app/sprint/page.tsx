@@ -9,7 +9,17 @@ export const metadata = { title: "Hustle Sprint — SEPi Portal" };
  * Two sprint kinds can run at once: the Current Member sprint (two
  * admin-built teams competing) and the New Member sprint. Each renders
  * as its own block; you can only submit to the one for your role.
+ * The Rules card is always on this page, including when no event is open.
  */
+
+const SPRINT_RULES = [
+  "No selling assets. You cannot sell things you already own.",
+  "Points come from profit: revenue minus costs. One dollar of profit is one point. Every entry needs proof and will be audited.",
+  "If you are proven to be lying about money you made, the amount you submitted is deducted from your team's points.",
+  "Only real outside customers count. Family and members buying from members do not count.",
+  "The first $1,000 the chapter makes goes to charity. Everything after that you keep, with no cap. The goal is to make as much as possible.",
+  "The losing team owes the winning team dinner.",
+];
 
 type SprintEvent = {
   id: string;
@@ -203,6 +213,25 @@ export default async function SprintPage() {
       <SiteNav session={nav} />
       <div className="mx-auto max-w-2xl px-6 pb-24">
         <h1 className="display-serif py-14 text-center text-6xl">Hustle Sprint</h1>
+
+        <section
+          aria-labelledby="sprint-rules-heading"
+          className="mb-14 rounded-xl border border-stone bg-paper p-5 sm:p-6"
+        >
+          <h2 id="sprint-rules-heading" className="text-xl font-extrabold text-midnight">
+            Rules
+          </h2>
+          <ol className="mt-4 list-decimal space-y-3 pl-5 text-base leading-6 text-midnight">
+            {SPRINT_RULES.map((rule) => (
+              <li key={rule} className="pl-1">
+                {rule}
+              </li>
+            ))}
+          </ol>
+          <p className="mt-5 border-t border-stone pt-4 text-sm font-bold leading-6 text-navy">
+            Ends Sunday, October 25 at 11:59 PM ET. Results at chapter Monday, October 26.
+          </p>
+        </section>
 
         {events.length === 0 && (
           <p className="text-center text-slate-blue">
