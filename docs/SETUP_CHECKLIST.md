@@ -89,8 +89,8 @@ in-app notifications are the primary channel.
 - [ ] Draft the member roster: name, `@miamioh.edu` email, role. A spreadsheet is fine; the bulk
       invite takes newline-separated emails.
 - [ ] Decide big/little pairings, or plan to set them in the admin console after profiles exist.
-- [ ] Write the Money Sprint rules somewhere members can read them. The app shows the leaderboard,
-      not the rules.
+- [x] Hustle Sprint rules are on `/sprint` for members to read. Each person puts $40 toward
+      charity, which adds up to the $1,000 SEPi donates. Everything else members keep.
 
 ---
 

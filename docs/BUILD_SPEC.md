@@ -191,7 +191,9 @@ Two streams merged by timestamp:
 Money Sprint does **not** appear here.
 
 ### Sprint `/sprint`
-Only visible when a sprint event exists. Leaderboard ranked by
+Always show the Rules card from `app/sprint/page.tsx`, including when no event is running.
+Each person puts $40 toward charity, which adds up to the $1,000 SEPi donates. Everything else
+is kept. Leaderboard blocks appear when a sprint event exists, ranked by
 `amount_delivered + (amount_pre_service * 1.5)`. Shows both raw components and the computed
 score. Team totals for Wyatt vs Madison. Submission form when the event is `open`, with proof
 photo upload. Submissions show as pending until admin approves. Only approved entries count
