@@ -192,8 +192,8 @@ Money Sprint does **not** appear here.
 
 ### Sprint `/sprint`
 Always show the Rules card from `app/sprint/page.tsx`, including when no event is running.
-The charity rule is: the first $1,000 the chapter makes goes to charity, and everything after
-that is kept, with no cap. Leaderboard blocks appear when a sprint event exists, ranked by
+Each person puts $40 toward charity, which adds up to the $1,000 SEPi donates. Everything else
+is kept. Leaderboard blocks appear when a sprint event exists, ranked by
 `amount_delivered + (amount_pre_service * 1.5)`. Shows both raw components and the computed
 score. Team totals for Wyatt vs Madison. Submission form when the event is `open`, with proof
 photo upload. Submissions show as pending until admin approves. Only approved entries count

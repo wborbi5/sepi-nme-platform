@@ -13,12 +13,14 @@ export const metadata = { title: "Hustle Sprint — SEPi Portal" };
  */
 
 const SPRINT_RULES = [
-  "No selling assets. You cannot sell things you already own.",
-  "Points come from profit: revenue minus costs. One dollar of profit is one point. Every entry needs proof and will be audited.",
-  "If you are proven to be lying about money you made, the amount you submitted is deducted from your team's points.",
-  "Only real outside customers count. Family and members buying from members do not count.",
-  "The first $1,000 the chapter makes goes to charity. Everything after that you keep, with no cap. The goal is to make as much as possible.",
-  "The losing team owes the winning team dinner.",
+  "Points are revenue minus cost of goods. One dollar of profit is one point. Free labor from SEPi members counts as a $0 cost.",
+  "You cannot sell things you already own, and salaries, regular paychecks, and unrealized gains on stocks or crypto do not count.",
+  "You cannot sell to SEPi members, pledges, or family.",
+  "Commission, one-time gigs, digital content, tips, donations, pre-orders, and gambling, betting, or crypto winnings all count. Revenue from an existing business counts only if it is new revenue made during the sprint.",
+  "Each sale counts once, for one teammate.",
+  "Every entry needs proof of payment. Entries over $200 need double proof: payment plus buyer contact info or an invoice.",
+  "A proven false entry is taken off your team's total two times over.",
+  "Each person puts $40 toward charity, which adds up to the $1,000 SEPi donates. Everything else you keep. The losing team owes the winning team dinner.",
 ];
 
 type SprintEvent = {
@@ -228,9 +230,10 @@ export default async function SprintPage() {
               </li>
             ))}
           </ol>
-          <p className="mt-5 border-t border-stone pt-4 text-sm font-bold leading-6 text-navy">
-            Ends Sunday, October 25 at 11:59 PM ET. Results at chapter Monday, October 26.
-          </p>
+          <div className="mt-5 space-y-2 border-t border-stone pt-4 text-sm font-bold leading-6 text-navy">
+            <p>Join #hustler-challenge in Slack to post stories and big wins.</p>
+            <p>Ends Sunday, October 25 at 11:59 PM ET. Results at chapter Monday, October 26.</p>
+          </div>
         </section>
 
         {events.length === 0 && (
