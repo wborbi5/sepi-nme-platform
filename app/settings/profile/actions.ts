@@ -1,7 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
+import { optionalHttpUrl } from "@/lib/http-url";
+import { parseProfileForm, profileSchema } from "@/lib/profile-form";
 import { createClient } from "@/lib/supabase/server";
 import { parseResumeForProfile } from "@/lib/resume-parser";
 import { slugify } from "@/lib/slug";
@@ -11,55 +12,57 @@ import { slugify } from "@/lib/slug";
  * you update your own row, and the privilege guard trigger blocks any
  * attempt to change role / big_id / is_active. Avatar and resume bytes
  * go browser → Storage directly; this action only stores the paths.
+ *
+ * Full name is the only required field. Failures return { ok: false }
+ * with a specific message instead of throwing a Zod digest.
  */
 
-const schema = z.object({
-  full_name: z.string().trim().min(1).max(80),
-  major: z.string().trim().max(80).optional(),
-  grad_year: z.union([z.coerce.number().int().min(2020).max(2035), z.literal("")]).optional(),
-  pledge_class: z.string().trim().max(40).optional(),
-  bio: z.string().trim().max(2000).optional(),
-  linkedin_url: z
-    .union([z.string().trim().url().startsWith("https://"), z.literal("")])
-    .optional(),
-  skills: z.string().optional(),
-  interests: z.string().optional(),
-  avatar_path: z.string().optional(),
-  resume_path: z.string().optional(),
-});
-
-function csvToArray(v: string | undefined): string[] {
-  return (v ?? "")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .slice(0, 20);
-}
-
-export async function updateOwnProfile(formData: FormData): Promise<void> {
+export async function updateOwnProfile(
+  formData: FormData
+): Promise<{ ok: true } | { ok: false; error: string }> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not signed in");
+  if (!user) return { ok: false, error: "You need to be signed in to save your profile." };
 
   const raw = Object.fromEntries(
     [...formData.entries()].filter(([, v]) => typeof v === "string")
   );
-  const parsed = schema.parse(raw);
+  const parsedResult = profileSchema.safeParse(raw);
+  if (!parsedResult.success) {
+    return {
+      ok: false,
+      error: parsedResult.error.issues[0]?.message ?? "Check the form and try again.",
+    };
+  }
+  const parsed = parseProfileForm(raw);
+  if (!parsed.ok) return parsed;
+
+  // Bare domains (linkedin.com/in/x, www.x.com) get https://. Tracking params stay.
+  const linkedin = optionalHttpUrl(typeof raw.linkedin_url === "string" ? raw.linkedin_url : "");
+  if (!linkedin.ok) {
+    return {
+      ok: false,
+      error:
+        "LinkedIn should look like linkedin.com/in/your-name. Tracking parameters are fine, or leave it blank.",
+    };
+  }
 
   const patch: Record<string, unknown> = {
-    full_name: parsed.full_name,
-    major: parsed.major || null,
-    grad_year: parsed.grad_year === "" || parsed.grad_year == null ? null : parsed.grad_year,
-    pledge_class: parsed.pledge_class || null,
-    bio: parsed.bio || null,
-    linkedin_url: parsed.linkedin_url || null,
-    skills: csvToArray(parsed.skills),
-    interests: csvToArray(parsed.interests),
+    full_name: parsed.value.full_name,
+    major: parsed.value.major,
+    grad_year: parsed.value.grad_year,
+    pledge_class: parsed.value.pledge_class,
+    bio: parsed.value.bio,
+    linkedin_url: linkedin.value,
+    summer_27_plan: parsed.value.summer_27_plan,
+    summer_27_plan_other: parsed.value.summer_27_plan_other,
+    skills: parsed.value.skills,
+    interests: parsed.value.interests,
   };
-  if (parsed.avatar_path) patch.avatar_path = parsed.avatar_path;
-  if (parsed.resume_path) patch.resume_path = parsed.resume_path;
+  if (parsed.value.avatar_path) patch.avatar_path = parsed.value.avatar_path;
+  if (parsed.value.resume_path) patch.resume_path = parsed.value.resume_path;
 
   const { data: existing } = await supabase
     .from("profiles")
@@ -67,16 +70,25 @@ export async function updateOwnProfile(formData: FormData): Promise<void> {
     .eq("id", user.id)
     .single();
   if (!existing?.slug) {
-    patch.slug = slugify(parsed.full_name);
+    patch.slug = slugify(parsed.value.full_name);
   }
 
   const { error } = await supabase.from("profiles").update(patch).eq("id", user.id);
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (/slug/i.test(error.message) && /unique|duplicate/i.test(error.message)) {
+      return {
+        ok: false,
+        error: "Someone already has a profile link like that name. Add a middle name and save again.",
+      };
+    }
+    return { ok: false, error: "Could not save your profile. Try again." };
+  }
 
   revalidatePath("/people");
   revalidatePath("/settings/profile");
   revalidatePath("/p/[slug]", "page");
   revalidatePath("/onboarding");
+  return { ok: true };
 }
 
 /*

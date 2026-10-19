@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { normalizeOptionalUrl } from "@/lib/http-url";
 
 /*
  * LinkedIn URLs pasted into the mentor directory. Canonical form is what we
@@ -6,7 +7,7 @@ import { z } from "zod";
  * duplicates. No LinkedIn API — the slug is only a placeholder name.
  */
 
-const inputSchema = z.string().trim().min(1).max(500);
+const inputSchema = z.string().trim().min(1).max(2000);
 
 export type ParsedMentor = {
   linkedin_url: string;
@@ -22,16 +23,17 @@ export function parseMentorUrl(
     return { ok: false, error: "Paste a LinkedIn profile URL." };
   }
 
+  const normalized = normalizeOptionalUrl(parsed.data);
   let url: URL;
   try {
-    url = new URL(parsed.data);
+    url = new URL(normalized ?? "");
   } catch {
-    return { ok: false, error: "Paste a LinkedIn profile URL." };
+    return { ok: false, error: "Use a link like linkedin.com/in/name. Tracking parameters are fine." };
   }
 
   const host = url.hostname.toLowerCase().replace(/^www\./, "");
-  if (host !== "linkedin.com") {
-    return { ok: false, error: "Use a linkedin.com/in/ profile link." };
+  if (host !== "linkedin.com" && !host.endsWith(".linkedin.com")) {
+    return { ok: false, error: "Use a linkedin.com/in/ or linkedin.com/company/ link." };
   }
 
   const path = decodeURIComponent(url.pathname).replace(/\/+$/, "");
@@ -40,8 +42,9 @@ export function parseMentorUrl(
   const kind = profile ? "in" : company ? "company" : null;
   const slug = (profile?.[1] ?? company?.[1] ?? "").toLowerCase();
 
-  if (!kind || !/^[a-z0-9-]+$/.test(slug)) {
-    return { ok: false, error: "Use a linkedin.com/in/ profile link." };
+  // Letters (including accents), numbers, underscores, and hyphens.
+  if (!kind || !/^[\p{L}\p{N}_-]+$/u.test(slug)) {
+    return { ok: false, error: "Use a linkedin.com/in/ or linkedin.com/company/ link." };
   }
 
   return {

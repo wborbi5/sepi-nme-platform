@@ -23,7 +23,12 @@ export default function PostForm({
         setError("");
         setBusy(true);
         try {
-          await createPost(new FormData(e.currentTarget));
+          const result = await createPost(new FormData(e.currentTarget));
+          if (!result.ok) {
+            setError(result.error);
+            setBusy(false);
+            return;
+          }
           router.push("/updates");
         } catch (err) {
           setError(err instanceof Error ? err.message : "Post failed");

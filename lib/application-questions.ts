@@ -31,7 +31,7 @@ export const SECTIONS: Section[] = [
     public: true,
     questions: [
       { key: "company_name", label: "Company name", required: true, maxLength: 80, rows: 1 },
-      { key: "one_liner", label: "One-liner", required: true, maxLength: 50, rows: 1 },
+      { key: "one_liner", label: "One-liner", required: true, rows: 1 },
     ],
   },
   {

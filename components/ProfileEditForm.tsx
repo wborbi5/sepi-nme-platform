@@ -9,6 +9,7 @@ import {
   writeMyBio,
 } from "@/app/settings/profile/actions";
 import type { ProfileRow } from "@/lib/data";
+import { parseProfileForm } from "@/lib/profile-form";
 
 /*
  * Self-service profile editor. Files go browser → Supabase Storage
@@ -21,15 +22,22 @@ const inputCls =
 const labelCls = "mb-1 block text-sm font-bold text-steel";
 
 async function resizeToWebp(file: File): Promise<Blob> {
-  const bitmap = await createImageBitmap(file);
+  let bitmap: ImageBitmap;
+  try {
+    bitmap = await createImageBitmap(file);
+  } catch {
+    throw new Error("Couldn't read that photo. Use a screenshot or JPG.");
+  }
   const scale = Math.min(1, 1200 / Math.max(bitmap.width, bitmap.height));
   const canvas = document.createElement("canvas");
   canvas.width = Math.round(bitmap.width * scale);
   canvas.height = Math.round(bitmap.height * scale);
-  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Couldn't read that photo. Use a screenshot or JPG.");
+  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
   return new Promise((resolve, reject) =>
     canvas.toBlob(
-      (b) => (b ? resolve(b) : reject(new Error("Could not process image"))),
+      (b) => (b ? resolve(b) : reject(new Error("Couldn't read that photo. Use a screenshot or JPG."))),
       "image/webp",
       0.85
     )
@@ -49,6 +57,7 @@ export default function ProfileEditForm({ profile }: { profile: ProfileRow }) {
   const [bioNote, setBioNote] = useState("");
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
+  const [summerPlan, setSummerPlan] = useState(profile.summer_27_plan ?? "");
   const avatarInput = useRef<HTMLInputElement>(null);
   const resumeInput = useRef<HTMLInputElement>(null);
 
@@ -133,7 +142,18 @@ export default function ProfileEditForm({ profile }: { profile: ProfileRow }) {
       const fd = new FormData(e.currentTarget);
       fd.set("avatar_path", avatarPath);
       fd.set("resume_path", resumePath);
-      await updateOwnProfile(fd);
+      const checked = parseProfileForm(
+        Object.fromEntries([...fd.entries()].filter(([, v]) => typeof v === "string"))
+      );
+      if (!checked.ok) {
+        setError(checked.error);
+        return;
+      }
+      const result = await updateOwnProfile(fd);
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
       setSaved(true);
       router.refresh();
     } catch (err) {
@@ -185,8 +205,9 @@ export default function ProfileEditForm({ profile }: { profile: ProfileRow }) {
 
       {/* ---------------------------------------------------------- fields */}
       <div>
-        <label className={labelCls} htmlFor="full_name">Name</label>
-        <input id="full_name" name="full_name" required defaultValue={profile.full_name ?? ""} className={inputCls} />
+        <label className={labelCls} htmlFor="full_name">Full name</label>
+        <input id="full_name" name="full_name" required defaultValue={profile.full_name ?? ""} autoComplete="name" className={inputCls} />
+        <p className="mt-1 text-xs text-steel">Required. Everything else can wait.</p>
       </div>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -204,6 +225,34 @@ export default function ProfileEditForm({ profile }: { profile: ProfileRow }) {
         <label className={labelCls} htmlFor="pledge_class">Pledged SEPi</label>
         <input id="pledge_class" name="pledge_class" defaultValue={profile.pledge_class ?? ""} placeholder="Fall 2025" className={inputCls} />
       </div>
+
+      <div>
+        <label className={labelCls} htmlFor="summer_27_plan">Summer 2027</label>
+        <select
+          id="summer_27_plan"
+          name="summer_27_plan"
+          value={summerPlan}
+          onChange={(e) => setSummerPlan(e.target.value)}
+          className={inputCls}
+        >
+          <option value="">Not sure yet</option>
+          <option value="internship">Internship</option>
+          <option value="build_business">Build a business</option>
+          <option value="free_ball">Free ball</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      {summerPlan === "other" && (
+        <div>
+          <label className={labelCls} htmlFor="summer_27_plan_other">What’s the plan?</label>
+          <input
+            id="summer_27_plan_other"
+            name="summer_27_plan_other"
+            defaultValue={profile.summer_27_plan_other ?? ""}
+            className={inputCls}
+          />
+        </div>
+      )}
 
       <div>
         <label className={labelCls} htmlFor="bio">
@@ -256,7 +305,8 @@ export default function ProfileEditForm({ profile }: { profile: ProfileRow }) {
 
       <div>
         <label className={labelCls} htmlFor="linkedin_url">LinkedIn URL</label>
-        <input id="linkedin_url" name="linkedin_url" defaultValue={profile.linkedin_url ?? ""} placeholder="https://linkedin.com/in/you" className={inputCls} />
+        <input id="linkedin_url" name="linkedin_url" defaultValue={profile.linkedin_url ?? ""} placeholder="linkedin.com/in/you" inputMode="url" autoCapitalize="none" autoCorrect="off" spellCheck={false} className={inputCls} />
+        <p className="mt-1 text-xs text-steel">Bare links are fine. https:// is added for you.</p>
       </div>
 
       {/* ---------------------------------------------------------- resume */}
@@ -306,7 +356,11 @@ export default function ProfileEditForm({ profile }: { profile: ProfileRow }) {
       </div>
 
       {/* ------------------------------------------------------------ save */}
-      {error && <p className="text-sm font-semibold text-[#b91c1c]">{error}</p>}
+      {error && (
+        <p role="alert" className="text-sm font-semibold text-[#b91c1c]">
+          {error}
+        </p>
+      )}
       {saved && <p className="text-sm font-semibold text-[#15803d]">Profile saved.</p>}
       <div>
         <button

@@ -41,6 +41,8 @@ export type ProfileRow = {
   interests: string[];
   bio: string | null;
   linkedin_url: string | null;
+  summer_27_plan: "internship" | "build_business" | "free_ball" | "other" | null;
+  summer_27_plan_other: string | null;
   resume_path: string | null;
   resume_parsed: import("@/lib/resume-parser").ParsedResume | null;
   avatar_path: string | null;
@@ -83,7 +85,7 @@ export async function getProfiles(): Promise<ProfileRow[]> {
   const { data } = await supabase
     .from("profiles")
     .select(
-      "id, slug, full_name, role, position, major, grad_year, pledge_class, skills, interests, bio, linkedin_url, resume_path, resume_parsed, avatar_path, big_id"
+      "id, slug, full_name, role, position, major, grad_year, pledge_class, skills, interests, bio, linkedin_url, summer_27_plan, summer_27_plan_other, resume_path, resume_parsed, avatar_path, big_id"
     )
     .eq("is_active", true)
     .order("full_name");
