@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createServiceClient, requireAdmin } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email";
+import { formatSprintMoney } from "@/lib/money";
 
 export async function createSprintEvent(formData: FormData): Promise<void> {
   await requireAdmin();
@@ -116,7 +117,7 @@ export async function reviewSprintEntry(formData: FormData): Promise<void> {
         toEmail: profile.email,
         type: "sprint_rejected",
         subject: "Your Money Sprint entry was rejected",
-        bodyHtml: `<p>Your sprint entry ($${entry.amount_delivered} delivered, $${entry.amount_pre_service} pre-service) was rejected.</p>
+        bodyHtml: `<p>Your sprint entry (${formatSprintMoney(entry.amount_delivered)} delivered, ${formatSprintMoney(entry.amount_pre_service)} pre-service) was rejected.</p>
 ${parsed.reject_reason ? `<p>Reason: ${parsed.reject_reason}</p>` : ""}
 <p>Fix it and resubmit — the sprint is still on.</p>`,
         bodyText: `Your sprint entry was rejected.${parsed.reject_reason ? ` Reason: ${parsed.reject_reason}` : ""}`,

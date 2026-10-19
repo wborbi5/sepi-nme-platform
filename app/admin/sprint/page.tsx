@@ -1,3 +1,4 @@
+import { formatSprintMoney } from "@/lib/money";
 import { createClient, supabaseConfigured } from "@/lib/supabase/server";
 import {
   assignSprintTeam,
@@ -205,13 +206,13 @@ export default async function AdminSprint() {
                           ? ev.team_b_name
                           : e.team ?? "—"}
                     </td>
-                    <td className={`${td} text-right`}>${e.amount_delivered.toLocaleString()}</td>
-                    <td className={`${td} text-right`}>${e.amount_pre_service.toLocaleString()}</td>
+                    <td className={`${td} text-right`}>{formatSprintMoney(e.amount_delivered)}</td>
+                    <td className={`${td} text-right`}>{formatSprintMoney(e.amount_pre_service)}</td>
                     <td className={td}>{e.description}</td>
                     <td className={td}>
                       {proofUrls.get(e.id) ? (
                         <a href={proofUrls.get(e.id)} target="_blank" rel="noreferrer" className="text-[#0b57d0] underline">
-                          photo
+                          proof
                         </a>
                       ) : (
                         "—"

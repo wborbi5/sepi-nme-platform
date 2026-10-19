@@ -1,47 +1,92 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Seal from "@/components/Seal";
+import { postLoginPath } from "@/app/auth/actions";
+import {
+  LOGIN_ERROR_MESSAGES,
+  loginEmailError,
+  loginSendErrorMessage,
+  loginVerifyErrorMessage,
+  normalizeLoginEmail,
+  normalizeOtpToken,
+} from "@/lib/login";
 import { createClient } from "@/lib/supabase/client";
 
 function LoginForm() {
   const params = useSearchParams();
+  const router = useRouter();
   const next = params.get("next") ?? "/companies";
+  const queryError = params.get("error");
+  const queryMessage = queryError
+    ? LOGIN_ERROR_MESSAGES[queryError] ?? LOGIN_ERROR_MESSAGES.auth
+    : "";
+
   const [email, setEmail] = useState("");
-  const [state, setState] = useState<"idle" | "sending" | "sent" | "error">(
-    "idle"
-  );
+  const [code, setCode] = useState("");
+  const [phase, setPhase] = useState<"form" | "sent">("form");
+  const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
 
+  const shown = message || (phase === "form" ? queryMessage : "");
+
   async function sendLink(targetEmail: string) {
-    setState("sending");
+    const emailError = loginEmailError(targetEmail);
+    if (emailError) {
+      setMessage(emailError);
+      return;
+    }
+    const normalized = normalizeLoginEmail(targetEmail);
+    setBusy(true);
     setMessage("");
     try {
       const supabase = createClient();
       const { error } = await supabase.auth.signInWithOtp({
-        email: targetEmail.trim().toLowerCase(),
+        email: normalized,
         options: {
           shouldCreateUser: false,
           emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
         },
       });
       if (error) throw error;
-      setState("sent");
+      setEmail(normalized);
+      setPhase("sent");
     } catch (err) {
-      setState("error");
-      setMessage(
-        err instanceof Error && /signups not allowed|not found/i.test(err.message)
-          ? "This email hasn’t been invited yet. Ask an officer for an invite."
-          : "Couldn’t send the link. Check the email and try again."
-      );
+      setMessage(loginSendErrorMessage(err));
+    } finally {
+      setBusy(false);
     }
   }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     await sendLink(email);
+  }
+
+  async function submitCode(e: React.FormEvent) {
+    e.preventDefault();
+    const parsed = normalizeOtpToken(code);
+    if (!parsed.ok) {
+      setMessage(parsed.error);
+      return;
+    }
+    setBusy(true);
+    setMessage("");
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.verifyOtp({
+        email: normalizeLoginEmail(email),
+        token: parsed.token,
+        type: "email",
+      });
+      if (error) throw error;
+      router.replace(await postLoginPath(next));
+    } catch (err) {
+      setMessage(loginVerifyErrorMessage(err));
+      setBusy(false);
+    }
   }
 
   return (
@@ -55,15 +100,42 @@ function LoginForm() {
         one-time magic link. No password.
       </p>
 
-      {state === "sent" ? (
-        <div className="mt-8 flex max-w-sm flex-col items-center gap-4 text-center">
+      {phase === "sent" ? (
+        <div className="mt-8 flex w-full max-w-sm flex-col items-center gap-4 text-center">
           <p className="font-semibold text-navy">
             Check your inbox for the sign-in link.
           </p>
           <p className="text-sm text-slate-blue">
             Sent to <span className="font-semibold text-midnight">{email}</span>.
-            It expires in a few minutes and works once.
+            It expires in a few minutes and works once. Open it in this browser
+            if you can.
           </p>
+          <form onSubmit={submitCode} className="flex w-full flex-col gap-3 text-left">
+            <label className="text-sm font-semibold text-midnight" htmlFor="otp">
+              Or enter the code from the email
+            </label>
+            <input
+              id="otp"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              placeholder="6–8 digit code"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              className="w-full rounded-md border border-coolgray bg-paper px-4 py-3 text-base text-midnight outline-none focus:border-oxford"
+            />
+            <button
+              type="submit"
+              disabled={busy}
+              className="btn w-full rounded-full bg-navy px-6 py-3 text-base font-bold text-white hover:bg-oxford disabled:opacity-60"
+            >
+              {busy ? "Checking…" : "Sign in with code"}
+            </button>
+          </form>
+          {shown && (
+            <p role="alert" className="text-center text-sm font-semibold text-[#b91c1c]">
+              {shown}
+            </p>
+          )}
           <button
             type="button"
             onClick={() => sendLink(email)}
@@ -74,8 +146,9 @@ function LoginForm() {
           <button
             type="button"
             onClick={() => {
-              setState("idle");
+              setPhase("form");
               setMessage("");
+              setCode("");
             }}
             className="text-sm text-slate-blue hover:underline"
           >
@@ -89,9 +162,12 @@ function LoginForm() {
           </label>
           <input
             id="email"
-            type="email"
+            type="text"
             inputMode="email"
             autoComplete="email"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             required
             placeholder="you@miamioh.edu"
             value={email}
@@ -100,14 +176,14 @@ function LoginForm() {
           />
           <button
             type="submit"
-            disabled={state === "sending"}
+            disabled={busy}
             className="btn w-full rounded-full bg-navy px-6 py-3 text-base font-bold text-white hover:bg-oxford disabled:opacity-60"
           >
-            {state === "sending" ? "Sending…" : "Email me a sign-in link"}
+            {busy ? "Sending…" : "Email me a sign-in link"}
           </button>
-          {state === "error" && (
-            <p className="text-center text-sm font-semibold text-[#b91c1c]">
-              {message}
+          {shown && (
+            <p role="alert" className="text-center text-sm font-semibold text-[#b91c1c]">
+              {shown}
             </p>
           )}
         </form>

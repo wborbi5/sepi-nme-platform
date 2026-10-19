@@ -16,9 +16,11 @@ import { createClient } from "@/lib/supabase/server";
  * "An error occurred in the Server Components render".
  */
 
-const YEAR_MESSAGE = "Year founded must be a year between 2000 and 2100.";
-const WEBSITE_MESSAGE = "Website must be a valid URL like czarcrm.com";
-const DEMO_MESSAGE = "Demo link must be a valid URL like czarcrm.com";
+const YEAR_MESSAGE = "Year founded should be a year, or leave it blank.";
+const WEBSITE_MESSAGE =
+  "Website should look like czarcrm.com or https://czarcrm.com. Tracking parameters are fine, or leave it blank.";
+const DEMO_MESSAGE =
+  "Demo link should look like czarcrm.com or https://czarcrm.com. Tracking parameters are fine, or leave it blank.";
 
 const schema = z.object({
   name: z
@@ -26,19 +28,16 @@ const schema = z.object({
     .trim()
     .min(2, "Company name must be 2–80 characters.")
     .max(80, "Company name must be 2–80 characters."),
-  one_liner: z
-    .string({ required_error: "One-liner must be 3–50 characters." })
-    .trim()
-    .min(3, "One-liner must be 3–50 characters.")
-    .max(50, "One-liner must be 3–50 characters."),
+  one_liner: z.preprocess(
+    (value) => (typeof value === "string" ? value.trim() : ""),
+    z.string()
+  ),
   industry: z.string().trim().max(60, "Industry must be 60 characters or fewer.").optional(),
   founded_year: z.preprocess(
     (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
     z.coerce
       .number({ invalid_type_error: YEAR_MESSAGE })
       .int(YEAR_MESSAGE)
-      .min(2000, YEAR_MESSAGE)
-      .max(2100, YEAR_MESSAGE)
       .optional()
   ),
   website_url: z.string().optional(),
@@ -107,7 +106,11 @@ export async function createCompany(
       .select("id, slug")
       .single();
     if (error || !company) {
-      return { ok: false, error: "Could not create the company. Try again." };
+      console.error("create company failed:", error);
+      return {
+        ok: false,
+        error: error?.message || "Could not create the company. Try again.",
+      };
     }
 
     // Founding team: creator + selected co-founders. Drop anyone who is
@@ -164,8 +167,12 @@ export async function createCompany(
     revalidatePath("/companies");
     revalidatePath("/");
     return { ok: true, id: company.id, slug: company.slug };
-  } catch {
-    return { ok: false, error: "Something went wrong creating the company. Try again." };
+  } catch (err) {
+    console.error("create company failed:", err);
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : "Something went wrong creating the company. Try again.",
+    };
   }
 }
 

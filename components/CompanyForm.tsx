@@ -40,7 +40,6 @@ export default function CompanyForm({
   selfId: string;
 }) {
   const router = useRouter();
-  const [oneLiner, setOneLiner] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [cofounders, setCofounders] = useState<string[]>([]);
@@ -145,19 +144,10 @@ export default function CompanyForm({
       </div>
 
       <div>
-        <label className={labelCls} htmlFor="one_liner">
-          One-liner
-          <span className={`float-right font-normal ${oneLiner.length > 50 ? "text-[#b91c1c]" : "text-mist"}`}>
-            {oneLiner.length}/50
-          </span>
-        </label>
+        <label className={labelCls} htmlFor="one_liner">One-liner</label>
         <input
           id="one_liner"
           name="one_liner"
-          required
-          maxLength={50}
-          value={oneLiner}
-          onChange={(e) => setOneLiner(e.target.value)}
           placeholder="Restaurant delivery."
           className={inputCls}
         />

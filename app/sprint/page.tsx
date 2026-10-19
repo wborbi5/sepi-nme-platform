@@ -1,6 +1,7 @@
 import SiteNav from "@/components/SiteNav";
 import SprintSubmitForm from "@/components/SprintSubmitForm";
 import { getNavSession } from "@/lib/data";
+import { formatSprintMoney } from "@/lib/money";
 import { createClient, supabaseConfigured } from "@/lib/supabase/server";
 
 export const metadata = { title: "Hustle Sprint — SEPi Portal" };
@@ -131,7 +132,7 @@ export default async function SprintPage() {
                     {t === "a" ? event.team_a_name : event.team_b_name}
                   </p>
                   <p className="mt-1 text-3xl font-extrabold text-navy">
-                    ${Math.round(teamTotal(t)).toLocaleString()}
+                    {formatSprintMoney(teamTotal(t))}
                   </p>
                   <p className="mt-2 text-xs leading-5 text-steel">
                     {roster
@@ -185,18 +186,18 @@ export default async function SprintPage() {
                     </span>
                   )}
                   <span className="block text-xs text-steel">
-                    ${Number(row.delivered).toLocaleString()} delivered
+                    {formatSprintMoney(row.delivered)} delivered
                     {Number(event.multiplier) !== 1 && (
                       <>
                         {" "}
-                        · ${Number(row.pre_service).toLocaleString()} pre-service
+                        · {formatSprintMoney(row.pre_service)} pre-service
                       </>
                     )}
                   </span>
                 </span>
               </span>
               <span className="text-xl font-extrabold text-navy">
-                ${Math.round(Number(row.score)).toLocaleString()}
+                {formatSprintMoney(row.score)}
               </span>
             </div>
           ))}

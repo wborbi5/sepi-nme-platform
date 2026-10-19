@@ -50,11 +50,11 @@ export default function AddMentorForm() {
         <input
           id="mentor-linkedin"
           name="linkedin_url"
-          type="url"
+          type="text"
           required
           inputMode="url"
           autoComplete="off"
-          placeholder="https://www.linkedin.com/in/…"
+          placeholder="linkedin.com/in/… or linkedin.com/company/…"
           className={inputCls}
         />
         {error ? (

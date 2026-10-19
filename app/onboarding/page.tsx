@@ -4,6 +4,7 @@ import SiteNav from "@/components/SiteNav";
 import ProfileEditForm from "@/components/ProfileEditForm";
 import Seal from "@/components/Seal";
 import { getNavSession, getProfiles } from "@/lib/data";
+import { profileNeedsOnboarding } from "@/lib/profile-form";
 import { createClient, supabaseConfigured } from "@/lib/supabase/server";
 
 export const metadata = { title: "Welcome — SEPi Portal" };
@@ -13,24 +14,6 @@ export const maxDuration = 60;
  * First-run onboarding. Role is already set at invite time — this step
  * collects the profile fields the directory and NME tracker need.
  */
-
-function progress(done: number, total: number) {
-  const pct = Math.round((done / total) * 100);
-  return (
-    <div className="mx-auto mt-6 w-full max-w-md">
-      <div className="mb-2 flex justify-between text-xs font-semibold text-slate-blue">
-        <span>Profile setup</span>
-        <span>{pct}%</span>
-      </div>
-      <div className="h-2 overflow-hidden rounded-full bg-stone">
-        <div
-          className="h-full rounded-full bg-navy transition-all"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-    </div>
-  );
-}
 
 export default async function OnboardingPage() {
   if (!supabaseConfigured()) redirect("/");
@@ -45,16 +28,9 @@ export default async function OnboardingPage() {
   const profile = profiles.find((p) => p.id === user.id);
   if (!profile) redirect("/");
 
-  const checks = [
-    Boolean(profile.full_name?.trim()),
-    Boolean(profile.major?.trim()),
-    Boolean(profile.grad_year),
-    Boolean(profile.slug),
-  ];
-  const done = checks.filter(Boolean).length;
-  const complete = done === checks.length;
-
-  if (complete) redirect("/companies");
+  // Name is the only required profile field. Major, year, and the rest
+  // can be filled in later from Settings.
+  if (!profileNeedsOnboarding(profile)) redirect("/companies");
 
   const roleLabel =
     profile.role === "new_member"
@@ -72,9 +48,8 @@ export default async function OnboardingPage() {
           <h1 className="display-serif mt-6 text-center text-5xl">Welcome</h1>
           <p className="mt-3 max-w-md text-center text-slate-blue">
             You’re in as <span className="font-semibold text-midnight">{roleLabel}</span>.
-            Finish your profile so brothers can find you.
+            Add your name so brothers can find you. Everything else is optional.
           </p>
-          {progress(done, checks.length)}
         </div>
 
         <div className="mt-10">
