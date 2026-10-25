@@ -27,10 +27,10 @@ const MEMBER_LINKS = [
   { href: "/calendar", label: "Calendar" },
   { href: "/portfolio", label: "Portfolio" },
   { href: "/sprint", label: "Sprint" },
+  { href: "/internships", label: "Internships" },
 ];
 
 const RESOURCE_LINKS = [
-  { href: "/resources/internships", label: "Internship Opportunities" },
   { href: "/resources/requests-for-startups", label: "Requests for Startups" },
   { href: "/resources/tools", label: "Tools" },
   { href: "/resources/mentor-directory", label: "Mentor Directory" },
