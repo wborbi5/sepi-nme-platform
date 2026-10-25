@@ -14,19 +14,6 @@ import { createClient, supabaseConfigured } from "@/lib/supabase/server";
 
 export const metadata = { title: "Internship Pipeline — SEPi Portal" };
 
-const OPPORTUNITIES = [
-  { title: "Speaker mentorship" },
-  { title: "Hackathons" },
-  { title: "Startup Weekend", detail: "Nov 20–22" },
-  { title: "Interview, resume, and approach sessions" },
-];
-
-const CONTACTS = [
-  { name: "Aaron Verstraete", href: "https://www.linkedin.com/in/averstraete/" },
-  { name: "Kaya Hickin", href: "https://www.linkedin.com/in/kayahickin/" },
-  { name: "Giancarlo Sarti", href: "https://www.linkedin.com/in/giancarlo-sarti/" },
-];
-
 const SUMMER_GOAL_SET = new Set<string>([
   "internship",
   "build_business",
@@ -119,25 +106,6 @@ export default async function InternshipsPage() {
           interview prep, and networking.
         </p>
 
-        <section className="mt-8">
-          <h2 className="text-sm font-bold uppercase tracking-wide text-steel">
-            Next few weeks
-          </h2>
-          <ul className="mt-2">
-            {OPPORTUNITIES.map((item) => (
-              <li
-                key={item.title}
-                className="flex min-h-[44px] items-center justify-between gap-3 border-t border-stone py-2"
-              >
-                <span className="text-base font-bold text-midnight">{item.title}</span>
-                {"detail" in item && item.detail ? (
-                  <span className="shrink-0 text-sm font-semibold text-steel">{item.detail}</span>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        </section>
-
         <section className="mt-10">
           <h2 className="text-sm font-bold uppercase tracking-wide text-steel">
             Your plan
@@ -156,26 +124,6 @@ export default async function InternshipsPage() {
             </p>
           ) : null}
           <InternshipPlanForm plan={plan} />
-        </section>
-
-        <section className="mt-12">
-          <h2 className="text-sm font-bold uppercase tracking-wide text-steel">
-            For context
-          </h2>
-          <ul className="mt-2 space-y-2">
-            {CONTACTS.map((person) => (
-              <li key={person.href}>
-                <a
-                  href={person.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex min-h-[44px] items-center rounded-md border border-stone bg-paper px-4 text-base font-bold text-oxford"
-                >
-                  {person.name}
-                </a>
-              </li>
-            ))}
-          </ul>
         </section>
       </div>
     </div>
